@@ -2,6 +2,19 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { BRAND_NAME } from '../../api/axios'
 import { useState } from 'react'
+import {
+  BedDouble,
+  LogIn,
+  LogOut,
+  CalendarCheck,
+  CreditCard,
+  LayoutDashboard,
+  Table2,
+  User as UserIcon,
+  Menu,
+  X,
+} from 'lucide-react'
+import { formatName } from '../../utils/helpers'
 
 const ROLE_LINKS = {
   admin: [
@@ -27,6 +40,7 @@ const ROLE_LINKS = {
   customer: [
     { to: '/', label: 'Find a Room' },
     { to: '/my/bookings', label: 'My Bookings' },
+    { to: '/my/payments', label: 'Payment History' },
     { to: '/my/profile', label: 'My Profile' },
   ],
 }
@@ -56,6 +70,52 @@ function NavLink({ to, label, currentPath, onClick }) {
   )
 }
 
+function NavIconButton({ to, icon: Icon, title, active, onClick }) {
+  const content = (
+    <span
+      style={{
+        width: '44px',
+        height: '44px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        color: active ? 'var(--color-laterite)' : 'var(--color-ink)',
+        borderBottom: active ? '2px solid var(--color-laterite)' : '2px solid transparent',
+        transition: 'color var(--transition)',
+      }}
+    >
+      <Icon size={20} strokeWidth={1.5} />
+    </span>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={title}
+        aria-label={title}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'inline-flex',
+        }}
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <Link to={to} title={title} aria-label={title} style={{ textDecoration: 'none', display: 'inline-flex' }}>
+      {content}
+    </Link>
+  )
+}
+
 export function AppLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -68,6 +128,8 @@ export function AppLayout({ children }) {
     await logout()
     navigate('/login')
   }
+
+  const formatted = formatName(user?.name)
 
   const sidebarContent = (
     <>
@@ -87,7 +149,7 @@ export function AppLayout({ children }) {
           {user?.role || 'Guest'}
         </span>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '0.9375rem', marginTop: '4px' }}>
-          {user?.name || 'Patron'}
+          {formatted.full || 'Guest'}
         </span>
         <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-stone)', marginTop: '2px' }}>
           {user?.email}
@@ -104,7 +166,7 @@ export function AppLayout({ children }) {
           />
         ))}
       </nav>
-      <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: 'var(--border)' }}>
+      <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: 'var(--border)' }}>
         <button
           onClick={handleLogout}
           style={{
@@ -153,11 +215,12 @@ export function AppLayout({ children }) {
             color: 'var(--color-ink)',
             lineHeight: 1.2,
             display: 'block',
+            fontWeight: 600,
           }}>
             {BRAND_NAME}
           </span>
           <span style={{ fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-stone)' }}>
-            Est. 1928 &bull; Register
+            Register &bull; Management
           </span>
         </Link>
         {sidebarContent}
@@ -177,11 +240,8 @@ export function AppLayout({ children }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <Link to="/" style={{ textDecoration: 'none', color: 'var(--color-ink)' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.125rem' }}>{BRAND_NAME}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.125rem', fontWeight: 600 }}>{BRAND_NAME}</span>
               </Link>
-              <span style={{ display: 'block', fontSize: '0.6875rem', textTransform: 'uppercase', color: 'var(--color-stone)' }}>
-                {user?.role ? `${user.role} console` : 'Guest'}
-              </span>
             </div>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -194,28 +254,30 @@ export function AppLayout({ children }) {
                 fontSize: '1rem',
                 color: 'var(--color-ink)',
               }}
-              aria-label="Toggle navigation menu"
-              aria-expanded={mobileOpen}
+              aria-label="Toggle navigation"
             >
-              {mobileOpen ? '✕' : '☰ Menu'}
+              {mobileOpen ? '✕' : '☰'}
             </button>
           </div>
+
+          {/* Mobile slide-down drawer */}
           {mobileOpen && (
-            <div style={{ marginTop: '16px', borderTop: 'var(--border)', paddingTop: '16px' }}>
+            <div style={{
+              marginTop: '16px',
+              paddingTop: '16px',
+              borderTop: 'var(--border)',
+            }}>
               {sidebarContent}
             </div>
           )}
         </div>
+
         {children}
       </main>
     </div>
   )
 }
 
-/**
- * PublicLayout — For public home, booking page, login, and registration.
- * Driven directly by AuthContext so logged-in users see their account and role navigation.
- */
 export function PublicLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -224,7 +286,7 @@ export function PublicLayout({ children }) {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/')
+    navigate('/login')
   }
 
   const isCurrent = (path) => {
@@ -232,11 +294,14 @@ export function PublicLayout({ children }) {
     return location.pathname.startsWith(path)
   }
 
+  const formattedName = formatName(user?.name)
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-paper)' }}>
+      {/* 64px Minimal Editorial Navbar */}
       <header style={{
+        height: '64px',
         borderBottom: 'var(--border)',
-        padding: '16px 24px',
         backgroundColor: 'var(--color-paper)',
         position: 'sticky',
         top: 0,
@@ -244,166 +309,180 @@ export function PublicLayout({ children }) {
       }}>
         <div style={{
           maxWidth: 'var(--max-width)',
+          height: '100%',
           margin: '0 auto',
+          padding: '0 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          {/* Brand Logo */}
-          <Link to="/" style={{ textDecoration: 'none' }}>
+          {/* Wordmark Only (No Tagline) */}
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
             <span style={{
               fontFamily: 'var(--font-display)',
               fontSize: '1.25rem',
               color: 'var(--color-ink)',
-              display: 'block',
-              lineHeight: 1.1,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
             }}>
               {BRAND_NAME}
             </span>
-            <span style={{
-              fontSize: '0.6875rem',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: 'var(--color-stone)',
-              display: 'block',
-              marginTop: '2px',
-            }}>
-              Boutique Lodgings &amp; Fine Chambers
-            </span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Right Cluster: Lucide Symbols */}
           <nav
             aria-label="Public site navigation"
-            style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '0.875rem' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
             className="desktop-nav"
           >
-            <Link
+            {/* Rooms / Availability Icon (Always present) */}
+            <NavIconButton
               to="/"
-              style={{
-                color: isCurrent('/') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                textDecoration: 'none',
-                fontWeight: isCurrent('/') ? 600 : 400,
-                borderBottom: isCurrent('/') ? '2px solid var(--color-laterite)' : '2px solid transparent',
-                paddingBottom: '2px',
-              }}
-            >
-              Availability &amp; Rooms
-            </Link>
+              icon={BedDouble}
+              title="Rooms & Rates"
+              active={isCurrent('/') && location.pathname === '/'}
+            />
 
             {user ? (
-              /* Logged In State */
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                {user.role === 'customer' ? (
-                  <>
-                    <Link
-                      to="/my/bookings"
-                      style={{
-                        color: isCurrent('/my/bookings') || isCurrent('/my/reservations') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                        textDecoration: 'none',
-                        fontWeight: isCurrent('/my/bookings') || isCurrent('/my/reservations') ? 600 : 400,
-                        borderBottom: (isCurrent('/my/bookings') || isCurrent('/my/reservations')) ? '2px solid var(--color-laterite)' : '2px solid transparent',
-                        paddingBottom: '2px',
-                      }}
-                    >
-                      My Bookings
-                    </Link>
-                    <Link
-                      to="/my/profile"
-                      style={{
-                        color: isCurrent('/my/profile') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                        textDecoration: 'none',
-                        fontWeight: isCurrent('/my/profile') ? 600 : 400,
-                        borderBottom: isCurrent('/my/profile') ? '2px solid var(--color-laterite)' : '2px solid transparent',
-                        paddingBottom: '2px',
-                      }}
-                    >
-                      Profile
-                    </Link>
-                  </>
-                ) : (
-                  /* Staff or Admin */
-                  <>
-                    <Link
-                      to="/staff/chart"
-                      style={{
-                        color: isCurrent('/staff/chart') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                        textDecoration: 'none',
-                        fontWeight: isCurrent('/staff/chart') ? 600 : 400,
-                      }}
-                    >
-                      Tape Chart
-                    </Link>
-                    <Link
-                      to="/staff/dashboard"
-                      style={{
-                        color: isCurrent('/staff/dashboard') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                        textDecoration: 'none',
-                        fontWeight: isCurrent('/staff/dashboard') ? 600 : 400,
-                      }}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      to="/staff/reservations"
-                      style={{
-                        color: isCurrent('/staff/reservations') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                        textDecoration: 'none',
-                        fontWeight: isCurrent('/staff/reservations') ? 600 : 400,
-                      }}
-                    >
-                      Reservations
-                    </Link>
-                  </>
-                )}
+              user.role === 'customer' ? (
+                /* Customer Cluster */
+                <>
+                  <NavIconButton
+                    to="/my/bookings"
+                    icon={CalendarCheck}
+                    title="My Bookings"
+                    active={isCurrent('/my/bookings') || isCurrent('/my/reservations')}
+                  />
+                  <NavIconButton
+                    to="/my/payments"
+                    icon={CreditCard}
+                    title="Payment History"
+                    active={isCurrent('/my/payments')}
+                  />
 
-                {/* User indicator & Sign Out button */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  borderLeft: '1px solid var(--color-rule)',
-                  paddingLeft: '16px',
-                  marginLeft: '4px',
-                }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem' }}>
-                      {user.name}
-                    </span>
-                    <span style={{ display: 'block', fontSize: '0.6875rem', textTransform: 'uppercase', color: 'var(--color-stone)' }}>
-                      {user.role}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
+                  {/* Customer Avatar & Name (NO role badge) */}
+                  <Link
+                    to="/my/profile"
+                    title={`Patron Profile — ${formattedName.full}`}
+                    aria-label={`Patron Profile — ${formattedName.full}`}
                     style={{
-                      border: 'var(--border)',
-                      backgroundColor: 'transparent',
-                      padding: '4px 10px',
-                      borderRadius: 'var(--radius)',
-                      cursor: 'pointer',
-                      fontSize: '0.8125rem',
-                      fontFamily: 'var(--font-ui)',
-                      color: 'var(--color-stone)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      textDecoration: 'none',
+                      color: isCurrent('/my/profile') ? 'var(--color-laterite)' : 'var(--color-ink)',
+                      height: '44px',
+                      padding: '0 8px',
+                      borderBottom: isCurrent('/my/profile') ? '2px solid var(--color-laterite)' : '2px solid transparent',
                     }}
                   >
-                    Sign out
-                  </button>
-                </div>
-              </div>
+                    <span
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        border: '1px solid var(--color-rule)',
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        color: 'var(--color-ink)',
+                      }}
+                    >
+                      {formattedName.initial}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                      }}
+                      className="desktop-name"
+                    >
+                      {formattedName.first}
+                    </span>
+                  </Link>
+
+                  <NavIconButton
+                    onClick={handleLogout}
+                    icon={LogOut}
+                    title="Sign Out"
+                  />
+                </>
+              ) : (
+                /* Receptionist / Admin Cluster */
+                <>
+                  <NavIconButton
+                    to="/staff/dashboard"
+                    icon={LayoutDashboard}
+                    title="Front Desk Dashboard"
+                    active={isCurrent('/staff/dashboard')}
+                  />
+                  <NavIconButton
+                    to="/staff/chart"
+                    icon={Table2}
+                    title="Room Tape Chart"
+                    active={isCurrent('/staff/chart')}
+                  />
+                  <NavIconButton
+                    to="/staff/reservations"
+                    icon={CalendarCheck}
+                    title="Reservations List"
+                    active={isCurrent('/staff/reservations')}
+                  />
+                  <Link
+                    to="/staff/dashboard"
+                    title={`Staff Portal (${user.role})`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      textDecoration: 'none',
+                      color: 'var(--color-ink)',
+                      height: '44px',
+                      padding: '0 8px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        border: '1px solid var(--color-rule)',
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        color: 'var(--color-ink)',
+                      }}
+                    >
+                      {formattedName.initial}
+                    </span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }} className="desktop-name">
+                      {formattedName.first}
+                    </span>
+                  </Link>
+                  <NavIconButton
+                    onClick={handleLogout}
+                    icon={LogOut}
+                    title="Sign Out"
+                  />
+                </>
+              )
             ) : (
-              /* Logged Out State */
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <Link
+              /* Logged Out Cluster */
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <NavIconButton
                   to="/login"
-                  style={{
-                    color: isCurrent('/login') ? 'var(--color-laterite)' : 'var(--color-ink)',
-                    textDecoration: 'none',
-                    fontWeight: 500,
-                  }}
-                >
-                  Sign in
-                </Link>
+                  icon={LogIn}
+                  title="Sign In"
+                  active={isCurrent('/login')}
+                />
                 <Link
                   to="/register"
                   style={{
@@ -411,9 +490,10 @@ export function PublicLayout({ children }) {
                     color: 'var(--color-paper)',
                     textDecoration: 'none',
                     fontWeight: 600,
-                    padding: '6px 14px',
+                    fontSize: '0.8125rem',
+                    padding: '8px 14px',
                     borderRadius: 'var(--radius)',
-                    transition: 'background var(--transition)',
+                    marginLeft: '8px',
                   }}
                 >
                   Create account
@@ -438,51 +518,54 @@ export function PublicLayout({ children }) {
             className="mobile-nav-toggle"
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? '✕' : '☰'}
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
 
         {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
           <div style={{
-            marginTop: '12px',
-            paddingTop: '12px',
-            borderTop: 'var(--border)',
+            padding: '16px 24px',
+            borderBottom: 'var(--border)',
+            backgroundColor: 'var(--color-paper)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px',
+            gap: '12px',
           }}
           className="mobile-nav-menu"
           >
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
-              style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}
+              style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0', fontWeight: 500 }}
             >
-              Availability &amp; Rooms
+              Rooms &amp; Availability
             </Link>
 
             {user ? (
               <>
                 <div style={{ padding: '8px 0', borderBottom: '1px dotted var(--color-rule)', color: 'var(--color-stone)', fontSize: '0.8125rem' }}>
-                  Signed in as <strong>{user.name}</strong> ({user.role})
+                  Signed in as <strong>{formattedName.full}</strong>
                 </div>
                 {user.role === 'customer' ? (
                   <>
                     <Link to="/my/bookings" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
                       My Bookings
                     </Link>
+                    <Link to="/my/payments" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
+                      Payment History
+                    </Link>
                     <Link to="/my/profile" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
-                      Profile
+                      My Profile
                     </Link>
                   </>
                 ) : (
                   <>
-                    <Link to="/staff/chart" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
-                      Tape Chart
-                    </Link>
                     <Link to="/staff/dashboard" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
                       Dashboard
+                    </Link>
+                    <Link to="/staff/chart" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
+                      Tape Chart
                     </Link>
                     <Link to="/staff/reservations" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none', padding: '6px 0' }}>
                       Reservations
@@ -499,13 +582,14 @@ export function PublicLayout({ children }) {
                     color: 'var(--color-laterite)',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
+                    fontWeight: 600,
                   }}
                 >
                   Sign out
                 </button>
               </>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '8px' }}>
                 <Link to="/login" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-ink)', textDecoration: 'none' }}>
                   Sign in
                 </Link>
@@ -535,10 +619,10 @@ export function PublicLayout({ children }) {
             <strong>{BRAND_NAME}</strong> &bull; Historic Harbour Quarter, Mumbai 400001
           </div>
           <div>
-            Check-in 14:00 &bull; Check-out 11:00 &bull; Concierge: +91 22 4910 8800
+            Check-in 14:00 &bull; Check-out 11:00 &bull; Reception: +91 22 2202 0000
           </div>
-          <div style={{ fontStyle: 'italic' }}>
-            Academic MERN Demonstration Project
+          <div style={{ fontStyle: 'italic', color: 'var(--color-stone)' }}>
+            Demo project, not a real hotel.
           </div>
         </div>
       </footer>

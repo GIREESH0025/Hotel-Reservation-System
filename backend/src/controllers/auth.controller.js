@@ -12,6 +12,14 @@ const signToken = (userId) =>
 const register = asyncHandler(async (req, res) => {
   const { name, email, password, phone } = req.body;
 
+  const normalizedName = (name || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .split(' ')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+
   const existing = await User.findOne({ email });
   if (existing) {
     return res.status(409).json({
@@ -21,11 +29,11 @@ const register = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await User.create({ name, email, password, phone, role: 'customer' });
+  const user = await User.create({ name: normalizedName, email, password, phone, role: 'customer' });
 
   // Auto-create a Guest record linked to this user account
   await Guest.create({
-    fullName: name,
+    fullName: normalizedName,
     phone: phone || '',
     email,
     user: user._id,

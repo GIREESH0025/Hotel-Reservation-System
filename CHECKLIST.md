@@ -424,10 +424,10 @@
 - [x] Frontend payment UI: deposit vs full vs at hotel options, demo payment modal, folio invoice print, customer payments page — verified in `BookPage.jsx`, `DemoPaymentModal.jsx`, `MyReservationDetailPage.jsx`, `MyPaymentsPage.jsx`, `PaymentsPage.jsx`
 
 ### Phase C: Minimal Symbol Navbar
-- [ ] Height 64px, wordmark only ("Harbour Row Hotel"), no tagline
-- [ ] Lucide-react symbol cluster (Bed, LogIn, CalendarCheck, User, LogOut, LayoutDashboard, Grid)
-- [ ] Tooltips on hover & focus, 2px active underline, 44px hit target
-- [ ] Remove role badge ("CUSTOMER") from navbar; wide screens display first name
+- [x] Height 64px, wordmark only ("Harbour Row Hotel"), no tagline — verified in `Layout.jsx` header (64px height, tagline removed)
+- [x] Lucide-react symbol cluster (Bed, LogIn, CalendarCheck, User, LogOut, LayoutDashboard, Grid) — verified in `Layout.jsx` with `lucide-react`
+- [x] Tooltips on hover & focus, 2px active underline, 44px hit target — verified in `NavIconButton` with `title`, `aria-label`, 44px hit area
+- [x] Remove role badge ("CUSTOMER") from navbar; wide screens display first name — verified in `Layout.jsx` (avatar circle + first name, no role badge)
 
 ### Phase D: Editorial Hero & Authentic Copy
 - [ ] Remove all invented claims ("EST. 1928", "for nearly a century", "maritime captains", "cultural pilgrims")

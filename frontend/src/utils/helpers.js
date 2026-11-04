@@ -1,4 +1,38 @@
 /**
+ * Normalises and formats a name in Title Case and extracts parts.
+ * @param {string} name
+ * @returns {{ full: string, first: string, initial: string }}
+ */
+export function formatName(name) {
+  if (!name || typeof name !== 'string') return { full: '', first: '', initial: 'G' }
+  const cleaned = name.trim().replace(/\s+/g, ' ')
+  const titleCased = cleaned
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  const first = titleCased.split(' ')[0] || ''
+  const initial = first.charAt(0).toUpperCase() || 'G'
+  return { full: titleCased, first, initial }
+}
+
+/**
+ * Formats date into editorial style: e.g. "Tue 4 Nov 2026"
+ */
+export function formatDateEditorial(date) {
+  if (!date) return '—'
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return '—'
+  const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(date.trim())
+  const tzOpt = isDateOnly ? { timeZone: 'UTC' } : { timeZone: 'Asia/Kolkata' }
+  const weekday = new Intl.DateTimeFormat('en-IN', { weekday: 'short', ...tzOpt }).format(d)
+  const day = new Intl.DateTimeFormat('en-IN', { day: 'numeric', ...tzOpt }).format(d)
+  const month = new Intl.DateTimeFormat('en-IN', { month: 'short', ...tzOpt }).format(d)
+  const year = new Intl.DateTimeFormat('en-IN', { year: 'numeric', ...tzOpt }).format(d)
+  return `${weekday} ${day} ${month} ${year}`
+}
+
+/**
  * Formats a number as Indian Rupees.
  * @param {number} amount
  * @returns {string} e.g. "₹2,500.00"

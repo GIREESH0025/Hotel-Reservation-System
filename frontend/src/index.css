@@ -270,3 +270,26 @@ input:disabled, select:disabled, textarea:disabled {
   }
 }
 
+/* ── Navigation responsive rules ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .desktop-name {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  .mobile-nav-toggle {
+    display: flex !important;
+  }
+  .desktop-sidebar {
+    display: none !important;
+  }
+  .mobile-header {
+    display: block !important;
+  }
+}
+
+
