@@ -430,9 +430,9 @@
 - [x] Remove role badge ("CUSTOMER") from navbar; wide screens display first name — verified in `Layout.jsx` (avatar circle + first name, no role badge)
 
 ### Phase D: Editorial Hero & Authentic Copy
-- [ ] Remove all invented claims ("EST. 1928", "for nearly a century", "maritime captains", "cultural pilgrims")
-- [ ] Honest hotel terminology ("Rooms", "Guests", "available", demo notice footer)
-- [ ] Editorial 7/5 hero layout with Young Serif heading, real room photo in ink frame, bottom-docked booking slip
+- [x] Remove all invented claims ("EST. 1928", "for nearly a century", "maritime captains", "cultural pilgrims") — verified in `hotel.config.js`, `AvailabilityPage.jsx`, `Layout.jsx`
+- [x] Honest hotel terminology ("Rooms", "Guests", "available", demo notice footer) — verified across `AvailabilityPage.jsx` and footer
+- [x] Editorial 7/5 hero layout with Young Serif heading, real room photo in ink frame, bottom-docked booking slip — verified in `AvailabilityPage.jsx` & `index.css`
 
 ### Phase E: Seed & Full Regression
 - [ ] Seed data update with complete payment lifecycles and realistic transaction references

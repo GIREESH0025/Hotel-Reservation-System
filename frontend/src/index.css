@@ -278,6 +278,20 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 @media (max-width: 767px) {
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+  .hero-photo-container {
+    order: -1;
+  }
+  .hero-photo-container > div > div {
+    min-height: 200px !important;
+    max-height: 240px !important;
+  }
+  .room-result-card {
+    grid-template-columns: 1fr !important;
+  }
   .desktop-nav {
     display: none !important;
   }
