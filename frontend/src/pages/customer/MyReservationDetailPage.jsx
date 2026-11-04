@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/Button'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/Modal'
+import { DemoPaymentModal } from '../../components/payments/DemoPaymentModal'
 import { BRAND_NAME } from '../../api/axios'
 import { formatINR, formatDate } from '../../utils/helpers'
 
@@ -19,6 +20,7 @@ export default function MyReservationDetailPage() {
   const { success, error } = useToast()
   const [cancelling, setCancelling] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showPayModal, setShowPayModal] = useState(false)
 
   // Fetch reservation details (includes computed balance)
   const { data: reservation, loading: resLoading, error: resError, refetch } = useFetch(
@@ -123,8 +125,13 @@ export default function MyReservationDetailPage() {
         >
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <StatusBadge status={reservation.status} />
+            {balance > 0 && !['cancelled', 'checked_out', 'no_show'].includes(reservation.status) && (
+              <Button variant="primary" size="sm" onClick={() => setShowPayModal(true)}>
+                Pay Balance ({formatINR(balance)})
+              </Button>
+            )}
             <Button variant="secondary" size="sm" onClick={handlePrint}>
-              ⎙ Print Folio
+              Print Folio / Invoice
             </Button>
             {canCancel && (
               <Button
@@ -420,6 +427,18 @@ export default function MyReservationDetailPage() {
           &larr; Return to My Bookings
         </Link>
       </div>
+
+      <DemoPaymentModal
+        isOpen={showPayModal}
+        onClose={() => setShowPayModal(false)}
+        onSuccess={() => refetch()}
+        reservationId={id}
+        reservationCode={reservation.reservationCode}
+        totalAmount={reservation.totalAmount}
+        balance={balance}
+        allowDeposit={!payments.some((p) => p.status === 'paid')}
+        defaultType={payments.some((p) => p.status === 'paid') ? 'balance' : 'deposit'}
+      />
 
       <ConfirmDialog
         isOpen={showCancelModal}

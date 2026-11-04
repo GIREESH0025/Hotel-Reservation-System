@@ -124,3 +124,131 @@ test('Customer can see staff-created reservation that matches customer email', a
   const found = custList.body.data.find((r) => r._id.toString() === resId.toString());
   assert.ok(found, 'Customer must see reservations associated with their email address');
 });
+
+test('Customer pays 25% deposit online: moves reservation from pending to confirmed', async () => {
+  const { room, tokenC1 } = await setup();
+  const ci = new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0];
+  const co = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+
+  const bookRes = await request(app)
+    .post('/api/v1/reservations')
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ roomId: room._id.toString(), checkIn: ci, checkOut: co, adults: 2 });
+
+  const resId = bookRes.body.data._id;
+  assert.strictEqual(bookRes.body.data.status, 'pending');
+
+  // Customer pays deposit
+  const payRes = await request(app)
+    .post(`/api/v1/reservations/${resId}/pay`)
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ amountType: 'deposit', method: 'demo_online' });
+
+  assert.strictEqual(payRes.status, 201);
+  assert.strictEqual(payRes.body.success, true);
+  assert.strictEqual(payRes.body.financials.paymentStatus, 'partial');
+  assert.strictEqual(payRes.body.financials.depositPaid, true);
+
+  // Check reservation is now confirmed
+  const checkRes = await request(app)
+    .get(`/api/v1/reservations/${resId}`)
+    .set('Authorization', `Bearer ${tokenC1}`);
+
+  assert.strictEqual(checkRes.body.data.status, 'confirmed');
+});
+
+test('Duplicate payment request with same idempotencyKey is handled idempotently', async () => {
+  const { room, tokenC1 } = await setup();
+  const ci = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
+  const co = new Date(Date.now() + 17 * 86400000).toISOString().split('T')[0];
+
+  const bookRes = await request(app)
+    .post('/api/v1/reservations')
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ roomId: room._id.toString(), checkIn: ci, checkOut: co, adults: 1 });
+
+  const resId = bookRes.body.data._id;
+  const key = `idem-key-${Date.now()}`;
+
+  // First request
+  const p1 = await request(app)
+    .post(`/api/v1/reservations/${resId}/pay`)
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ amountType: 'deposit', method: 'demo_online', idempotencyKey: key });
+
+  assert.strictEqual(p1.status, 201);
+
+  // Duplicate request
+  const p2 = await request(app)
+    .post(`/api/v1/reservations/${resId}/pay`)
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ amountType: 'deposit', method: 'demo_online', idempotencyKey: key });
+
+  assert.strictEqual(p2.status, 200);
+  assert.strictEqual(p2.body.data.reference, p1.body.data.reference);
+});
+
+test('Customer payment failure is simulated if amount ends in .13', async () => {
+  const paymentGateway = require('../src/services/paymentGateway');
+  const result = await paymentGateway.processPayment({ amount: 1500.13 });
+  assert.strictEqual(result.success, false);
+  assert.match(result.message, /declined/i);
+});
+
+test('Folio invoice endpoint returns itemized charges and transactions', async () => {
+  const { room, tokenC1 } = await setup();
+  const ci = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+  const co = new Date(Date.now() + 32 * 86400000).toISOString().split('T')[0];
+
+  const bookRes = await request(app)
+    .post('/api/v1/reservations')
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ roomId: room._id.toString(), checkIn: ci, checkOut: co, adults: 2 });
+
+  const resId = bookRes.body.data._id;
+
+  const invRes = await request(app)
+    .get(`/api/v1/reservations/${resId}/invoice`)
+    .set('Authorization', `Bearer ${tokenC1}`);
+
+  assert.strictEqual(invRes.status, 200);
+  assert.strictEqual(invRes.body.success, true);
+  assert.ok(invRes.body.data.invoiceNumber.startsWith('INV-'));
+  assert.strictEqual(invRes.body.data.lineItems.length, 1);
+  assert.strictEqual(invRes.body.data.financials.balance, 8000);
+});
+
+test('Cancellation >= 48 hours before check-in automatically creates a refund payment', async () => {
+  const { room, tokenC1 } = await setup();
+  // 5 days in the future
+  const ci = new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0];
+  const co = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+
+  const bookRes = await request(app)
+    .post('/api/v1/reservations')
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ roomId: room._id.toString(), checkIn: ci, checkOut: co, adults: 2 });
+
+  const resId = bookRes.body.data._id;
+
+  // Pay deposit
+  await request(app)
+    .post(`/api/v1/reservations/${resId}/pay`)
+    .set('Authorization', `Bearer ${tokenC1}`)
+    .send({ amountType: 'deposit', method: 'demo_online' });
+
+  // Cancel reservation
+  const cancelRes = await request(app)
+    .patch(`/api/v1/reservations/${resId}/cancel`)
+    .set('Authorization', `Bearer ${tokenC1}`);
+
+  assert.strictEqual(cancelRes.status, 200);
+  assert.strictEqual(cancelRes.body.data.status, 'cancelled');
+
+  // Verify refund payment was automatically recorded
+  const { computeFinancials } = require('../src/services/reservation.service');
+  const fin = await computeFinancials(resId);
+  assert.ok(fin.refundedAmount > 0, 'Refunded amount must be greater than 0');
+  assert.strictEqual(fin.paymentStatus, 'refunded');
+});
+

@@ -20,6 +20,7 @@ const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage'))
 // Customer
 const MyReservationsPage = lazy(() => import('./pages/customer/MyReservationsPage'))
 const MyReservationDetailPage = lazy(() => import('./pages/customer/MyReservationDetailPage'))
+const MyPaymentsPage = lazy(() => import('./pages/customer/MyPaymentsPage'))
 const MyProfilePage = lazy(() => import('./pages/customer/MyProfilePage'))
 
 // Staff
@@ -99,6 +100,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
                     <AppLayout><MyReservationDetailPage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my/payments"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <AppLayout><MyPaymentsPage /></AppLayout>
                   </ProtectedRoute>
                 }
               />

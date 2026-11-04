@@ -414,14 +414,14 @@
 - [x] Prevent mutation staleness across views (`RefreshContext` + `useRefresh`) — verified in `BookPage`, `MyReservationsPage`, `DashboardPage`, `ReservationsListPage`, `PaymentsPage`
 
 ### Phase B: Payments End-to-End
-- [ ] Payment model: reservation, amount, method, type, status, reference, idempotencyKey, receivedBy, paidAt, note
-- [ ] Financial computation service: computeFinancials (totalAmount, paidAmount, refundedAmount, balance, paymentStatus)
-- [ ] Demo payment gateway abstraction with simulated latency and test failure
-- [ ] Endpoints: POST /api/v1/reservations/:id/pay (deposit/balance/full), POST /api/v1/payments (desk), POST /api/v1/payments/:id/refund (admin)
-- [ ] Folio invoice endpoint: GET /api/v1/reservations/:id/invoice
-- [ ] Cancellation refund policy: auto-refund if cancelled >= 48 hours before check-in
-- [ ] Backend automated tests for payment rules (overpay, idempotency, refund limit, status transitions)
-- [ ] Frontend payment UI: deposit vs full vs at hotel options, demo payment modal, folio invoice print, customer payments page
+- [x] Payment model: reservation, amount, method, type, status, reference, idempotencyKey, receivedBy, paidAt, note — verified in `Payment.model.js`
+- [x] Financial computation service: computeFinancials (totalAmount, paidAmount, refundedAmount, balance, paymentStatus) — verified in `reservation.service.js`
+- [x] Demo payment gateway abstraction with simulated latency and test failure — verified in `paymentGateway.js` (.13 failure trigger)
+- [x] Endpoints: POST /api/v1/reservations/:id/pay (deposit/balance/full), POST /api/v1/payments (desk), POST /api/v1/payments/:id/refund (admin) — verified in `payment.controller.js`
+- [x] Folio invoice endpoint: GET /api/v1/reservations/:id/invoice — verified in `payment.controller.js` (returns INV- code, lineItems, balance)
+- [x] Cancellation refund policy: auto-refund if cancelled >= 48 hours before check-in — verified in `cancelReservation` & test in `round3.test.js`
+- [x] Backend automated tests for payment rules (overpay, idempotency, refund limit, status transitions) — verified 33/33 tests passing in `round3.test.js`
+- [x] Frontend payment UI: deposit vs full vs at hotel options, demo payment modal, folio invoice print, customer payments page — verified in `BookPage.jsx`, `DemoPaymentModal.jsx`, `MyReservationDetailPage.jsx`, `MyPaymentsPage.jsx`, `PaymentsPage.jsx`
 
 ### Phase C: Minimal Symbol Navbar
 - [ ] Height 64px, wordmark only ("Harbour Row Hotel"), no tagline

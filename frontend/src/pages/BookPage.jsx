@@ -31,10 +31,12 @@ export default function BookPage() {
   const [submitting, setSubmitting] = useState(false)
   const [fetchError, setFetchError] = useState(null)
   const [notes, setNotes] = useState('')
+  const [paymentChoice, setPaymentChoice] = useState('deposit') // 'deposit' | 'full' | 'hotel'
 
   const nights = computeNights(checkIn, checkOut)
   const ratePerNight = rateParam || roomType?.baseRate || 0
   const estimatedTotal = ratePerNight * nights
+  const depositAmount = Math.round(estimatedTotal * 0.25 * 100) / 100
 
   useEffect(() => {
     if (!roomTypeId) {
@@ -66,6 +68,8 @@ export default function BookPage() {
 
     try {
       setSubmitting(true)
+
+      // 1. Create reservation
       const res = await reservationsApi.create({
         roomId,
         checkIn,
@@ -73,10 +77,26 @@ export default function BookPage() {
         adults,
         notes: notes.trim(),
       })
-      const code = res.data?.data?.reservationCode
+
+      const resDoc = res.data?.data
+      const reservationId = resDoc?._id
+      const code = resDoc?.reservationCode
+
+      // 2. If online payment selected, process immediately via demo gateway
+      if (paymentChoice === 'deposit' || paymentChoice === 'full') {
+        const idempotencyKey = `pay-${reservationId}-${paymentChoice}-${Date.now()}`
+        await reservationsApi.pay(reservationId, {
+          amountType: paymentChoice,
+          method: 'demo_online',
+          idempotencyKey,
+        })
+        success(`Reservation confirmed and payment processed! Code: ${code}`)
+      } else {
+        success(`Reservation placed (Pending). Code: ${code}`)
+      }
+
       triggerRefresh()
-      success(`Reservation confirmed! Code: ${code}`)
-      navigate(`/my/bookings/${res.data?.data?._id || ''}`)
+      navigate(`/my/bookings/${reservationId}`)
     } catch (err) {
       const msg = err.response?.data?.message || 'Booking failed. The room may have been reserved by another guest.'
       error(msg)
@@ -110,10 +130,10 @@ export default function BookPage() {
       <div style={{ border: 'var(--border)', padding: '32px', backgroundColor: 'var(--color-paper)', borderRadius: 'var(--radius)' }}>
         <div style={{ borderBottom: '2px solid var(--color-ink)', paddingBottom: '16px', marginBottom: '24px' }}>
           <span style={{ fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-stone)', fontWeight: 600 }}>
-            Harbour Row Hotel &bull; Folio Confirmation
+            Harbour Row Hotel &bull; Stay Folio
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginTop: '4px' }}>
-            Confirm Reservation
+            Review & Confirm Stay
           </h1>
         </div>
 
@@ -138,19 +158,19 @@ export default function BookPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span>Dates</span>
+            <span>Stay Dates</span>
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>
               {formatDate(checkIn)} &rarr; {formatDate(checkOut)}
             </span>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span>Duration & Guests</span>
+            <span>Duration & Occupants</span>
             <span>{nights} night{nights > 1 ? 's' : ''} &bull; {adults} adult{adults > 1 ? 's' : ''}</span>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span>Nightly Rate</span>
+            <span>Rate Per Night</span>
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatINR(ratePerNight)}</span>
           </div>
 
@@ -164,18 +184,118 @@ export default function BookPage() {
             fontWeight: 700,
             fontSize: '1.125rem',
           }}>
-            <span>Estimated Total</span>
+            <span>Total Amount</span>
             <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--color-laterite)' }}>
               {formatINR(estimatedTotal)}
             </span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-stone)', marginTop: '4px', textAlign: 'right' }}>
-            Payment is due upon arrival at the reception desk.
-          </p>
         </div>
 
-        {/* Special requests / Notes */}
         <form onSubmit={handleConfirm}>
+          {/* Payment Option Selection */}
+          <div style={{ marginBottom: '24px' }}>
+            <h4 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-stone)', marginBottom: '12px' }}>
+              Payment Selection (Demo Gateway)
+            </h4>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label
+                style={{
+                  border: paymentChoice === 'deposit' ? '2px solid var(--color-ink)' : '1px solid var(--color-rule)',
+                  padding: '12px 14px',
+                  cursor: 'pointer',
+                  backgroundColor: paymentChoice === 'deposit' ? '#fff' : 'transparent',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    name="paymentChoice"
+                    value="deposit"
+                    checked={paymentChoice === 'deposit'}
+                    onChange={() => setPaymentChoice('deposit')}
+                    style={{ marginRight: '10px' }}
+                  />
+                  <span style={{ fontWeight: 600 }}>Pay 25% Deposit Now</span>
+                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-stone)', marginLeft: '24px' }}>
+                    Guarantees booking & moves reservation to Confirmed
+                  </span>
+                </div>
+                <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--color-laterite)' }}>
+                  {formatINR(depositAmount)}
+                </span>
+              </label>
+
+              <label
+                style={{
+                  border: paymentChoice === 'full' ? '2px solid var(--color-ink)' : '1px solid var(--color-rule)',
+                  padding: '12px 14px',
+                  cursor: 'pointer',
+                  backgroundColor: paymentChoice === 'full' ? '#fff' : 'transparent',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    name="paymentChoice"
+                    value="full"
+                    checked={paymentChoice === 'full'}
+                    onChange={() => setPaymentChoice('full')}
+                    style={{ marginRight: '10px' }}
+                  />
+                  <span style={{ fontWeight: 600 }}>Pay in Full Now</span>
+                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-stone)', marginLeft: '24px' }}>
+                    Clears entire stay balance immediately
+                  </span>
+                </div>
+                <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--color-moss)' }}>
+                  {formatINR(estimatedTotal)}
+                </span>
+              </label>
+
+              <label
+                style={{
+                  border: paymentChoice === 'hotel' ? '2px solid var(--color-ink)' : '1px solid var(--color-rule)',
+                  padding: '12px 14px',
+                  cursor: 'pointer',
+                  backgroundColor: paymentChoice === 'hotel' ? '#fff' : 'transparent',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    name="paymentChoice"
+                    value="hotel"
+                    checked={paymentChoice === 'hotel'}
+                    onChange={() => setPaymentChoice('hotel')}
+                    style={{ marginRight: '10px' }}
+                  />
+                  <span style={{ fontWeight: 600 }}>Pay at Hotel (Pending)</span>
+                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-stone)', marginLeft: '24px' }}>
+                    Hold room; settle balance at reception desk on arrival
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.875rem', color: 'var(--color-stone)' }}>
+                  ₹0 now
+                </span>
+              </label>
+            </div>
+
+            <div style={{ marginTop: '10px', fontSize: '0.75rem', color: 'var(--color-stone)', lineHeight: 1.4 }}>
+              * Demo Gateway: Simulated transactions only. No actual money is debited.
+            </div>
+          </div>
+
+          {/* Special requests / Notes */}
           <div style={{ marginBottom: '24px' }}>
             <label htmlFor="notes" style={{ display: 'block', fontWeight: 500, fontSize: '0.875rem', marginBottom: '6px' }}>
               Special Requests (optional)
@@ -185,7 +305,7 @@ export default function BookPage() {
               rows="3"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Quiet room, late arrival, extra towels"
+              placeholder="e.g. Quiet room, late arrival, extra pillows"
               style={{
                 width: '100%',
                 padding: '8px 12px',
@@ -204,7 +324,7 @@ export default function BookPage() {
               Cancel
             </Link>
             <Button type="submit" variant="primary" loading={submitting}>
-              Confirm & Book
+              {paymentChoice === 'hotel' ? 'Confirm Booking (Pay Later)' : `Pay & Confirm Booking`}
             </Button>
           </div>
         </form>
@@ -212,4 +332,3 @@ export default function BookPage() {
     </div>
   )
 }
-

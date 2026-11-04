@@ -70,17 +70,72 @@ async function resolveRate(room) {
 }
 
 /**
- * Computes the balance due for a reservation.
- * Balance = totalAmount - sum(paid) + sum(refunded)
+ * Computes complete financial summary for a reservation:
+ * totalAmount, paidAmount, refundedAmount, netPaid, balance, paymentStatus, deposit info.
  */
-async function computeBalance(reservationId, session = null) {
+async function computeFinancials(reservationId, session = null) {
   const opts = session ? { session } : {};
-  const payments = await Payment.find({ reservation: reservationId }, null, opts).lean();
-  const paid = payments.filter((p) => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
-  const refunded = payments.filter((p) => p.status === 'refunded').reduce((s, p) => s + p.amount, 0);
   const reservation = await Reservation.findById(reservationId, null, opts).lean();
   if (!reservation) throw new Error('Reservation not found');
-  return Math.round((reservation.totalAmount - paid + refunded) * 100) / 100;
+
+  const payments = await Payment.find({ reservation: reservationId }, null, opts).sort({ paidAt: 1 }).lean();
+
+  let paidAmount = 0;
+  let refundedAmount = 0;
+
+  for (const p of payments) {
+    if (p.status === 'paid') {
+      if (p.type === 'refund') {
+        refundedAmount += p.amount;
+      } else {
+        paidAmount += p.amount;
+      }
+    } else if (p.status === 'refunded') {
+      paidAmount += p.amount;
+      refundedAmount += p.amount;
+    }
+  }
+
+  paidAmount = Math.round(paidAmount * 100) / 100;
+  refundedAmount = Math.round(refundedAmount * 100) / 100;
+  const netPaid = Math.max(0, Math.round((paidAmount - refundedAmount) * 100) / 100);
+  const totalAmount = reservation.totalAmount;
+  const balance = Math.max(0, Math.round((totalAmount - netPaid) * 100) / 100);
+
+  let paymentStatus = 'unpaid';
+  if (netPaid <= 0 && refundedAmount > 0) {
+    paymentStatus = 'refunded';
+  } else if (balance <= 0 && paidAmount > 0) {
+    paymentStatus = 'paid';
+  } else if (netPaid > 0) {
+    paymentStatus = 'partial';
+  }
+
+  const depositPercent = 25;
+  const depositRequired = Math.round(totalAmount * (depositPercent / 100) * 100) / 100;
+  const depositPaid = netPaid >= depositRequired;
+
+  return {
+    totalAmount,
+    paidAmount,
+    refundedAmount,
+    netPaid,
+    balance,
+    paymentStatus,
+    depositRequired,
+    depositPaid,
+    depositPercent,
+    payments,
+  };
+}
+
+/**
+ * Computes the balance due for a reservation.
+ * Balance = totalAmount - netPaid
+ */
+async function computeBalance(reservationId, session = null) {
+  const fin = await computeFinancials(reservationId, session);
+  return fin.balance;
 }
 
 /**
@@ -335,6 +390,30 @@ async function cancelReservation(reservationId, actingUserId, actingRole) {
     }
   }
 
+  // Cancellation refund policy: if >= 48h before checkIn, refund all payments
+  const now = new Date();
+  const checkInDate = new Date(reservation.checkIn);
+  const hoursUntilCheckIn = (checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  const hotelConfig = require('../config/hotel.config');
+  const paymentGateway = require('./paymentGateway');
+
+  if (hoursUntilCheckIn >= (hotelConfig.cancellationFreeHours || 48)) {
+    const fin = await computeFinancials(reservation._id);
+    if (fin.netPaid > 0) {
+      await Payment.create({
+        reservation: reservation._id,
+        amount: fin.netPaid,
+        method: 'demo_online',
+        type: 'refund',
+        status: 'paid',
+        reference: paymentGateway.generateReference('REF'),
+        note: `Automatic full refund upon cancellation >= 48h before arrival (${hoursUntilCheckIn.toFixed(1)}h remaining).`,
+        paidAt: new Date(),
+      });
+    }
+  }
+
   reservation.status = 'cancelled';
   await reservation.save();
   return reservation;
@@ -393,6 +472,7 @@ module.exports = {
   cancelReservation,
   searchAvailability,
   computeBalance,
+  computeFinancials,
   checkOverlap,
 };
 

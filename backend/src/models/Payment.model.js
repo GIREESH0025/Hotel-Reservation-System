@@ -16,40 +16,64 @@ const paymentSchema = new mongoose.Schema(
     method: {
       type: String,
       enum: {
-        values: ['cash', 'card', 'upi'],
-        message: 'Payment method must be cash, card, or upi',
+        values: ['cash', 'card', 'upi', 'demo_online'],
+        message: 'Payment method must be cash, card, upi, or demo_online',
       },
       required: [true, 'Payment method is required'],
+    },
+    type: {
+      type: String,
+      enum: {
+        values: ['deposit', 'balance', 'full', 'refund'],
+        message: 'Payment type must be deposit, balance, full, or refund',
+      },
+      default: 'full',
     },
     status: {
       type: String,
       enum: {
-        values: ['paid', 'refunded'],
-        message: 'Payment status must be paid or refunded',
+        values: ['paid', 'refunded', 'failed'],
+        message: 'Payment status must be paid, refunded, or failed',
       },
       default: 'paid',
     },
     reference: {
       type: String,
       trim: true,
+      unique: true,
+      sparse: true,
+    },
+    idempotencyKey: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true,
     },
     receivedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Received-by staff member is required'],
+      default: null, // null for online customer payments
     },
     paidAt: {
       type: Date,
       default: Date.now,
     },
+    note: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 );
 
-// Index for quick lookups by reservation
+// Indexes
 paymentSchema.index({ reservation: 1 });
-paymentSchema.index({ receivedBy: 1 });
+paymentSchema.index({ paidAt: -1 });
+paymentSchema.index({ reference: 1 }, { unique: true, sparse: true });
+paymentSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 paymentSchema.index({ status: 1 });
+paymentSchema.index({ method: 1 });
+paymentSchema.index({ type: 1 });
 
 module.exports = mongoose.model('Payment', paymentSchema);
-
