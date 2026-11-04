@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { reservationsApi } from '../../api/reservations.api'
 import { useFetch } from '../../hooks/useFetch'
+import { useRefresh } from '../../context/RefreshContext'
 import { useToast } from '../../context/ToastContext'
 import { useTitle } from '../../hooks/useTitle'
 import { PageHeader } from '../../components/ui/PageHeader'
@@ -30,26 +31,47 @@ export default function MyReservationsPage() {
 
   const navigate = useNavigate()
   const { success, error: toastError } = useToast()
+  const { refreshTick, triggerRefresh } = useRefresh()
 
   const { data, loading, error, refetch } = useFetch(
     () => reservationsApi.list({ page, limit: 10 }),
-    [page]
+    [page, refreshTick]
   )
 
-  const allReservations = data?.data || []
+  const allReservations = (Array.isArray(data) ? data : data?.data) || []
   const totalPages = data?.totalPages || 1
+
+  // Date-only comparison in IST (Asia/Kolkata)
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
+  const toDateStr = (d) => {
+    if (!d) return ''
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(d))
+  }
 
   // Filter into tabs
   const filteredReservations = allReservations.filter((r) => {
-    if (activeTab === 'upcoming') return ['pending', 'confirmed'].includes(r.status)
-    if (activeTab === 'past') return ['checked_in', 'checked_out', 'no_show'].includes(r.status)
     if (activeTab === 'cancelled') return r.status === 'cancelled'
+    if (r.status === 'cancelled') return false
+
+    const checkOutStr = toDateStr(r.checkOut)
+    const isPastStay = r.status === 'checked_out' || r.status === 'no_show' || checkOutStr < todayStr
+
+    if (activeTab === 'upcoming') {
+      return !isPastStay && ['pending', 'confirmed', 'checked_in'].includes(r.status)
+    }
+    if (activeTab === 'past') {
+      return isPastStay
+    }
     return true
   })
 
   // Count badges
-  const upcomingCount = allReservations.filter((r) => ['pending', 'confirmed'].includes(r.status)).length
-  const pastCount = allReservations.filter((r) => ['checked_out', 'checked_in', 'no_show'].includes(r.status)).length
+  const upcomingCount = allReservations.filter(
+    (r) => r.status !== 'cancelled' && r.status !== 'no_show' && r.status !== 'checked_out' && toDateStr(r.checkOut) >= todayStr
+  ).length
+  const pastCount = allReservations.filter(
+    (r) => r.status === 'checked_out' || r.status === 'no_show' || (r.status !== 'cancelled' && toDateStr(r.checkOut) < todayStr)
+  ).length
   const cancelledCount = allReservations.filter((r) => r.status === 'cancelled').length
 
   const handleCancelConfirm = async () => {
@@ -59,6 +81,7 @@ export default function MyReservationsPage() {
       await reservationsApi.cancel(cancelModalId)
       success('Your reservation has been cancelled. Chamber dates have been released.')
       setCancelModalId(null)
+      triggerRefresh()
       refetch()
     } catch (err) {
       toastError(err.response?.data?.message || 'Failed to cancel reservation.')

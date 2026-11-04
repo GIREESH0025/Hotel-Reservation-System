@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { reportsApi } from '../../api/reports.api'
 import { reservationsApi } from '../../api/reservations.api'
 import { useFetch } from '../../hooks/useFetch'
+import { useRefresh } from '../../context/RefreshContext'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { DataTable } from '../../components/ui/DataTable'
 import { StatusBadge } from '../../components/ui/StatusBadge'
@@ -12,26 +13,28 @@ import { todayStr, formatDate, formatINR } from '../../utils/helpers'
 export default function DashboardPage() {
   const today = todayStr()
 
+  const { refreshTick } = useRefresh()
+
   // Fetch summary counts
   const { data: summary, loading: sumLoading, error: sumError, refetch: refetchSummary } = useFetch(
     () => reportsApi.summary(),
-    []
+    [refreshTick]
   )
 
   // Fetch today's arrivals (confirmed reservations with checkIn <= today)
   const { data: arrivalsData, loading: arrLoading } = useFetch(
     () => reservationsApi.list({ status: 'confirmed', limit: 10 }),
-    []
+    [refreshTick]
   )
 
   // Fetch today's in-house / departures (checked_in reservations)
   const { data: inHouseData, loading: inHouseLoading } = useFetch(
     () => reservationsApi.list({ status: 'checked_in', limit: 10 }),
-    []
+    [refreshTick]
   )
 
-  const arrivals = arrivalsData?.data || []
-  const inHouse = inHouseData?.data || []
+  const arrivals = (Array.isArray(arrivalsData) ? arrivalsData : arrivalsData?.data) || []
+  const inHouse = (Array.isArray(inHouseData) ? inHouseData : inHouseData?.data) || []
 
   const arrivalColumns = [
     {

@@ -28,4 +28,13 @@
 
 ## Hunt List Verification Summary
 
-All 12 defects identified during Phase A have been thoroughly fixed, covered by automated backend test assertions, and verified end-to-end.
+All 12 defects identified during Round 2 have been thoroughly fixed, covered by automated backend test assertions, and verified end-to-end.
+
+---
+
+## Fix Round 3 Defect Log
+
+| ID | Severity | Location | Repro Steps | Root Cause | Status |
+|---|---|---|---|---|---|
+| **BUG-13** | **P0** | `frontend/src/hooks/useFetch.js`, `frontend/src/pages/customer/MyReservationsPage.jsx`, `backend/src/controllers/reservation.controller.js` | 1. Log in as Customer `rahul@example.com` or register new customer.<br>2. Book an available room.<br>3. Navigate to `/my/bookings`.<br>4. Inspect table. | **Dual Root Cause**: <br>1. *Frontend Envelope Mismatch*: `useFetch` unpacked `result?.data?.data ?? result?.data`. For paginated lists, `result.data.data` is the Array of records. `useFetch` stored the Array directly, but `MyReservationsPage` and other list views read `data?.data || []`. Calling `.data` on an array evaluates to `undefined`, rendering an empty list and breaking pagination (`totalPages`).<br>2. *Backend Ownership Filter Gap*: `listReservations` checked only `filter.guest = ownGuest._id`. If a reservation was created where `createdBy == user._id` but guest was unlinked or created under another guest profile, or if reservations were booked before account registration, bookings were invisible to the customer.<br>3. *Timezone & Status Bucketing*: Tab filtering used `status` without date-only comparison in IST (`Asia/Kolkata`), causing past un-checked-in stays to be misclassified. | **Fixed** (Evidence: `useFetch` preserves pagination envelopes while unwrapping single resources; `MyReservationsPage` handles both array and envelope safely; backend enforces unified ownership rule `createdBy == user._id OR guest.user == user._id OR guest.email == user.email`; backfill script `fix:link-bookings` links existing records; verified by 3 new tests in `round3.test.js` passing 28/28). |
+

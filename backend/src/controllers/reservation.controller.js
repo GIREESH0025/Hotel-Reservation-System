@@ -12,14 +12,26 @@ const listReservations = asyncHandler(async (req, res) => {
 
   const filter = {};
 
-  // Customers only see own reservations
+  // Customers only see own reservations: createdBy == user._id OR guest.user == user._id
   if (req.user.role === 'customer') {
-    const ownGuest = await Guest.findOne({ user: req.user.id }).lean();
-    if (!ownGuest) return res.json({ success: true, data: [], page, limit, total: 0, totalPages: 0 });
-    if (req.query.guestId && req.query.guestId !== ownGuest._id.toString()) {
+    const User = require('../models/User.model');
+    const userDoc = await User.findById(req.user.id).lean();
+    const userEmail = userDoc?.email || req.user.email;
+
+    const guestQueries = [{ user: req.user.id }];
+    if (userEmail) guestQueries.push({ email: userEmail });
+    const userGuests = await Guest.find({ $or: guestQueries }).select('_id').lean();
+    const guestIds = userGuests.map((g) => g._id);
+
+    if (req.query.guestId && !guestIds.some((id) => id.toString() === req.query.guestId.toString())) {
       return res.status(403).json({ success: false, message: 'You can only view your own reservations.', errors: [] });
     }
-    filter.guest = ownGuest._id;
+
+    const ownershipOr = [{ createdBy: req.user.id }];
+    if (guestIds.length > 0) {
+      ownershipOr.push({ guest: { $in: guestIds } });
+    }
+    filter.$or = ownershipOr;
   } else if (req.query.guestId) {
     filter.guest = req.query.guestId;
   }
@@ -35,10 +47,16 @@ const listReservations = asyncHandler(async (req, res) => {
   if (req.query.checkInFrom) filter.checkIn = { $gte: new Date(req.query.checkInFrom) };
   if (req.query.checkInTo) filter.checkIn = { ...filter.checkIn, $lte: new Date(req.query.checkInTo) };
   if (req.query.search) {
-    filter.$or = [
+    const searchOr = [
       { reservationCode: { $regex: req.query.search, $options: 'i' } },
       { notes: { $regex: req.query.search, $options: 'i' } },
     ];
+    if (filter.$or) {
+      filter.$and = [{ $or: filter.$or }, { $or: searchOr }];
+      delete filter.$or;
+    } else {
+      filter.$or = searchOr;
+    }
   }
 
   const [data, total] = await Promise.all([
@@ -66,10 +84,23 @@ const getReservation = asyncHandler(async (req, res) => {
 
   if (!reservation) return res.status(404).json({ success: false, message: 'Reservation not found.', errors: [] });
 
-  // Ownership check for customers
+  // Ownership check for customers: createdBy == user._id OR guest.user == user._id OR guest.email == user.email
   if (req.user.role === 'customer') {
-    const ownGuest = await Guest.findOne({ user: req.user.id }).lean();
-    if (!ownGuest || reservation.guest._id.toString() !== ownGuest._id.toString()) {
+    const createdById = reservation.createdBy?._id
+      ? reservation.createdBy._id.toString()
+      : reservation.createdBy?.toString();
+    const isCreator = createdById === req.user.id.toString();
+
+    const guestUserId = reservation.guest?.user?._id
+      ? reservation.guest.user._id.toString()
+      : (reservation.guest?.user ? reservation.guest.user.toString() : null);
+
+    let isGuestOwner = guestUserId === req.user.id.toString();
+    if (!isGuestOwner && reservation.guest?.email && req.user.email) {
+      isGuestOwner = reservation.guest.email.toLowerCase() === req.user.email.toLowerCase();
+    }
+
+    if (!isCreator && !isGuestOwner) {
       return res.status(403).json({ success: false, message: 'You can only view your own reservations.', errors: [] });
     }
   }
@@ -84,12 +115,25 @@ const getReservation = asyncHandler(async (req, res) => {
 const createReservation = asyncHandler(async (req, res) => {
   let guestId = req.body.guestId;
 
-  // For customers: auto-resolve their linked Guest record
+  // For customers: auto-resolve and link/reuse Guest record
   if (req.user.role === 'customer') {
-    let ownGuest = await Guest.findOne({ user: req.user.id });
+    const User = require('../models/User.model');
+    const user = await User.findById(req.user.id);
+    let ownGuest = await Guest.findOne({ user: user._id });
+    if (!ownGuest && user.email) {
+      ownGuest = await Guest.findOne({ email: { $regex: new RegExp(`^${user.email}$`, 'i') } });
+      if (ownGuest) {
+        ownGuest.user = user._id;
+        await ownGuest.save();
+      }
+    }
     if (!ownGuest) {
-      const user = await require('../models/User.model').findById(req.user.id);
-      ownGuest = await Guest.create({ fullName: user.name, phone: user.phone || '', email: user.email, user: user._id });
+      ownGuest = await Guest.create({
+        fullName: user.name,
+        phone: user.phone || '',
+        email: user.email,
+        user: user._id,
+      });
     }
     guestId = ownGuest._id.toString();
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { reservationsApi } from '../../api/reservations.api'
 import { useFetch } from '../../hooks/useFetch'
+import { useRefresh } from '../../context/RefreshContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { DataTable } from '../../components/ui/DataTable'
@@ -28,6 +29,7 @@ export default function ReservationsListPage() {
   const [searchInput, setSearchInput] = useState('')
   const debouncedSearch = useDebounce(searchInput, 400)
   const navigate = useNavigate()
+  const { refreshTick } = useRefresh()
 
   const { data, loading, error, refetch } = useFetch(
     () => reservationsApi.list({
@@ -36,10 +38,10 @@ export default function ReservationsListPage() {
       status: statusFilter || undefined,
       search: debouncedSearch || undefined,
     }),
-    [page, statusFilter, debouncedSearch]
+    [page, statusFilter, debouncedSearch, refreshTick]
   )
 
-  const reservations = data?.data || []
+  const reservations = (Array.isArray(data) ? data : data?.data) || []
   const totalPages = data?.totalPages || 1
 
   const columns = [

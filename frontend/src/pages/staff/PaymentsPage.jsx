@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { paymentsApi } from '../../api/payments.api'
 import { useFetch } from '../../hooks/useFetch'
+import { useRefresh } from '../../context/RefreshContext'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { DataTable } from '../../components/ui/DataTable'
 import { Pagination } from '../../components/ui/Pagination'
@@ -15,6 +16,8 @@ export default function PaymentsPage() {
   const [methodFilter, setMethodFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
+  const { refreshTick } = useRefresh()
+
   const { data, loading, error, refetch } = useFetch(
     () => paymentsApi.list({
       page,
@@ -22,10 +25,10 @@ export default function PaymentsPage() {
       method: methodFilter || undefined,
       status: statusFilter || undefined,
     }),
-    [page, methodFilter, statusFilter]
+    [page, methodFilter, statusFilter, refreshTick]
   )
 
-  const payments = data?.data || []
+  const payments = (Array.isArray(data) ? data : data?.data) || []
   const totalPages = data?.totalPages || 1
 
   const columns = [

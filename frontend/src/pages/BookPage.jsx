@@ -4,6 +4,7 @@ import { reservationsApi } from '../api/reservations.api'
 import { roomTypesApi } from '../api/roomTypes.api'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useRefresh } from '../context/RefreshContext'
 import { Button } from '../components/ui/Button'
 import { Skeleton } from '../components/ui/Skeleton'
 import { ErrorState } from '../components/ui/ErrorState'
@@ -16,6 +17,7 @@ export default function BookPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { success, error } = useToast()
+  const { triggerRefresh } = useRefresh()
 
   const roomId = searchParams.get('roomId')
   const roomTypeId = searchParams.get('roomTypeId')
@@ -72,6 +74,7 @@ export default function BookPage() {
         notes: notes.trim(),
       })
       const code = res.data?.data?.reservationCode
+      triggerRefresh()
       success(`Reservation confirmed! Code: ${code}`)
       navigate(`/my/bookings/${res.data?.data?._id || ''}`)
     } catch (err) {

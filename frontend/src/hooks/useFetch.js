@@ -23,7 +23,18 @@ export function useFetch(fetchFn, deps = []) {
     try {
       const result = await fetchFn()
       if (isMounted.current && id === counter.current) {
-        setData(result?.data?.data ?? result?.data ?? result)
+        const payload = result?.data ?? result
+        if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
+          // If it is a paginated list or collection response (has total/totalPages/page or data is Array)
+          if ('total' in payload || 'totalPages' in payload || Array.isArray(payload.data)) {
+            setData(payload)
+          } else {
+            // Single resource: unwrap to payload.data
+            setData(payload.data)
+          }
+        } else {
+          setData(payload)
+        }
         setError(null)
       }
     } catch (err) {

@@ -317,15 +317,21 @@ async function cancelReservation(reservationId, actingUserId, actingRole) {
   }
 
   if (actingRole === 'customer') {
-    // Customers can only cancel their own reservations
+    // Customers can only cancel their own reservations (createdBy == userId OR guest.user == userId)
+    const isCreator = reservation.createdBy && reservation.createdBy.toString() === actingUserId.toString();
     const Guest = require('../models/Guest.model');
-    const ownGuest = await Guest.findOne({ user: actingUserId }).lean();
-    if (!ownGuest || reservation.guest._id.toString() !== ownGuest._id.toString()) {
-      const err = new Error('You can only cancel your own reservations.'); err.statusCode = 403; throw err;
+    const guestDoc = await Guest.findById(reservation.guest).lean();
+    const isGuestOwner = guestDoc && guestDoc.user && guestDoc.user.toString() === actingUserId.toString();
+
+    if (!isCreator && !isGuestOwner) {
+      const err = new Error('You can only cancel your own reservations.');
+      err.statusCode = 403;
+      throw err;
     }
     if (!['pending', 'confirmed'].includes(reservation.status)) {
       const err = new Error(`You can only cancel pending or confirmed reservations. Current status: ${reservation.status}`);
-      err.statusCode = 409; throw err;
+      err.statusCode = 409;
+      throw err;
     }
   }
 

@@ -402,6 +402,50 @@
 
 ---
 
+## Fix Round 3 — Comprehensive Polish & Enterprise Gateways
+
+### Phase A: Customer Booking Visibility & Staleness
+- [x] Reproduce BUG-13 and diagnose root cause — verified: `useFetch` unpacked array breaking `data.data`, while backend filter checked only `filter.guest = ownGuest._id`
+- [x] Unified ownership rule: `createdBy == user._id OR guest.user == user._id OR guest.email == user.email` — verified in `reservation.controller.js` and `reservation.service.js`
+- [x] Auto-link/reuse guest profile on customer booking — verified in `createReservation` in `reservation.controller.js`
+- [x] Backfill script `npm run fix:link-bookings` with dry-run default and `--apply` — verified in `linkBookings.js` (linked 17 reservations)
+- [x] Add backend tests for customer booking visibility, isolation, and email-based matching — verified 28/28 tests passing in `round3.test.js`
+- [x] Date bucketing in IST (`Asia/Kolkata`) for upcoming vs past vs cancelled stays — verified in `MyReservationsPage.jsx`
+- [x] Prevent mutation staleness across views (`RefreshContext` + `useRefresh`) — verified in `BookPage`, `MyReservationsPage`, `DashboardPage`, `ReservationsListPage`, `PaymentsPage`
+
+### Phase B: Payments End-to-End
+- [ ] Payment model: reservation, amount, method, type, status, reference, idempotencyKey, receivedBy, paidAt, note
+- [ ] Financial computation service: computeFinancials (totalAmount, paidAmount, refundedAmount, balance, paymentStatus)
+- [ ] Demo payment gateway abstraction with simulated latency and test failure
+- [ ] Endpoints: POST /api/v1/reservations/:id/pay (deposit/balance/full), POST /api/v1/payments (desk), POST /api/v1/payments/:id/refund (admin)
+- [ ] Folio invoice endpoint: GET /api/v1/reservations/:id/invoice
+- [ ] Cancellation refund policy: auto-refund if cancelled >= 48 hours before check-in
+- [ ] Backend automated tests for payment rules (overpay, idempotency, refund limit, status transitions)
+- [ ] Frontend payment UI: deposit vs full vs at hotel options, demo payment modal, folio invoice print, customer payments page
+
+### Phase C: Minimal Symbol Navbar
+- [ ] Height 64px, wordmark only ("Harbour Row Hotel"), no tagline
+- [ ] Lucide-react symbol cluster (Bed, LogIn, CalendarCheck, User, LogOut, LayoutDashboard, Grid)
+- [ ] Tooltips on hover & focus, 2px active underline, 44px hit target
+- [ ] Remove role badge ("CUSTOMER") from navbar; wide screens display first name
+
+### Phase D: Editorial Hero & Authentic Copy
+- [ ] Remove all invented claims ("EST. 1928", "for nearly a century", "maritime captains", "cultural pilgrims")
+- [ ] Honest hotel terminology ("Rooms", "Guests", "available", demo notice footer)
+- [ ] Editorial 7/5 hero layout with Young Serif heading, real room photo in ink frame, bottom-docked booking slip
+
+### Phase E: Seed & Full Regression
+- [ ] Seed data update with complete payment lifecycles and realistic transaction references
+- [ ] Rahul Verma test history: past fully paid, upcoming with deposit + balance due, pending unpaid, cancelled with refund
+- [ ] Staff dashboard revenue metrics and collections
+- [ ] Full regression testing across logged-out, Customer, Receptionist, Admin
+
+### Phase F: Design Review & Release
+- [ ] Impeccable accessibility and token audit
+- [ ] Update all documentation (BUGS.md, CHECKLIST.md, README.md, DEPLOY.md, AUDIT.md, ER diagram, Postman)
+
+---
+
 ## HUMAN-only Tasks
 
 > Do NOT tick these — prepare exact instructions in DEPLOY.md
