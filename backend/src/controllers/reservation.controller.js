@@ -16,7 +16,12 @@ const listReservations = asyncHandler(async (req, res) => {
   if (req.user.role === 'customer') {
     const ownGuest = await Guest.findOne({ user: req.user.id }).lean();
     if (!ownGuest) return res.json({ success: true, data: [], page, limit, total: 0, totalPages: 0 });
+    if (req.query.guestId && req.query.guestId !== ownGuest._id.toString()) {
+      return res.status(403).json({ success: false, message: 'You can only view your own reservations.', errors: [] });
+    }
     filter.guest = ownGuest._id;
+  } else if (req.query.guestId) {
+    filter.guest = req.query.guestId;
   }
 
   if (req.query.status) filter.status = req.query.status;
@@ -26,7 +31,6 @@ const listReservations = asyncHandler(async (req, res) => {
     const rooms = await Room.find({ roomType: req.query.roomType }, '_id').lean();
     filter.room = { $in: rooms.map((r) => r._id) };
   }
-  if (req.query.guestId) filter.guest = req.query.guestId;
   if (req.query.roomId) filter.room = req.query.roomId;
   if (req.query.checkInFrom) filter.checkIn = { $gte: new Date(req.query.checkInFrom) };
   if (req.query.checkInTo) filter.checkIn = { ...filter.checkIn, $lte: new Date(req.query.checkInTo) };

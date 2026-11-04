@@ -18,10 +18,20 @@ const listPayments = asyncHandler(async (req, res) => {
     const ownGuest = await Guest.findOne({ user: req.user.id }).lean();
     if (!ownGuest) return res.json({ success: true, data: [], page, limit, total: 0, totalPages: 0 });
     const ownReservations = await Reservation.find({ guest: ownGuest._id }, '_id').lean();
-    filter.reservation = { $in: ownReservations.map((r) => r._id) };
+    const ownResIds = ownReservations.map((r) => r._id.toString());
+
+    if (req.query.reservationId) {
+      if (!ownResIds.includes(req.query.reservationId.toString())) {
+        return res.status(403).json({ success: false, message: 'You can only view payments for your own reservations.', errors: [] });
+      }
+      filter.reservation = req.query.reservationId;
+    } else {
+      filter.reservation = { $in: ownReservations.map((r) => r._id) };
+    }
+  } else if (req.query.reservationId) {
+    filter.reservation = req.query.reservationId;
   }
 
-  if (req.query.reservationId) filter.reservation = req.query.reservationId;
   if (req.query.method) filter.method = req.query.method;
   if (req.query.status) filter.status = req.query.status;
 

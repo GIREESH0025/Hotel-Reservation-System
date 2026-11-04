@@ -1,13 +1,13 @@
 'use strict';
 const router = require('express').Router();
 const ctrl = require('../controllers/room.controller');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, optionalToken } = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 const validate = require('../middleware/validate');
 const { roomSchema, updateRoomSchema } = require('../validators/room.validator');
 
-// Availability is public (authenticated but all roles)
-router.get('/availability', verifyToken, ctrl.getAvailability);
+// Availability is public (can be checked by anyone visiting the hotel site)
+router.get('/availability', optionalToken, ctrl.getAvailability);
 
 router.use(verifyToken);
 

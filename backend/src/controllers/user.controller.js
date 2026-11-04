@@ -75,5 +75,26 @@ const deleteUser = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'User deleted.' });
 });
 
-module.exports = { listUsers, getUser, updateUser, deleteUser };
+/** PATCH /api/v1/users/change-password */
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = await User.findById(req.user.id).select('+password');
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.', errors: [] });
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    return res.status(400).json({
+      success: false,
+      message: 'The current password you entered is incorrect.',
+      errors: [{ field: 'currentPassword', message: 'Current password is incorrect' }],
+    });
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({ success: true, message: 'Password changed successfully.' });
+});
+
+module.exports = { listUsers, getUser, updateUser, deleteUser, changePassword };
 

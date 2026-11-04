@@ -227,7 +227,7 @@ async function confirmReservation(reservationId) {
   if (!reservation) { const err = new Error('Reservation not found'); err.statusCode = 404; throw err; }
   if (reservation.status !== 'pending') {
     const err = new Error(`Only pending reservations can be confirmed. Current status: ${reservation.status}`);
-    err.statusCode = 400; throw err;
+    err.statusCode = 409; throw err;
   }
   reservation.status = 'confirmed';
   await reservation.save();
@@ -244,7 +244,7 @@ async function checkIn(reservationId) {
 
   if (reservation.status !== 'confirmed') {
     const err = new Error(`Only confirmed reservations can be checked in. Current status: ${reservation.status}`);
-    err.statusCode = 400; throw err;
+    err.statusCode = 409; throw err;
   }
 
   const today = new Date();
@@ -280,7 +280,7 @@ async function checkOut(reservationId) {
 
   if (reservation.status !== 'checked_in') {
     const err = new Error(`Only checked-in reservations can be checked out. Current status: ${reservation.status}`);
-    err.statusCode = 400; throw err;
+    err.statusCode = 409; throw err;
   }
 
   const balance = await computeBalance(reservationId);
@@ -313,7 +313,7 @@ async function cancelReservation(reservationId, actingUserId, actingRole) {
       `Cannot cancel a reservation with status "${reservation.status}". ` +
       `Only pending or confirmed reservations may be cancelled.`
     );
-    err.statusCode = 400; throw err;
+    err.statusCode = 409; throw err;
   }
 
   if (actingRole === 'customer') {
@@ -325,7 +325,7 @@ async function cancelReservation(reservationId, actingUserId, actingRole) {
     }
     if (!['pending', 'confirmed'].includes(reservation.status)) {
       const err = new Error(`You can only cancel pending or confirmed reservations. Current status: ${reservation.status}`);
-      err.statusCode = 400; throw err;
+      err.statusCode = 409; throw err;
     }
   }
 

@@ -46,5 +46,29 @@ const verifyToken = asyncHandler(async (req, res, next) => {
   next();
 });
 
-module.exports = { verifyToken };
+/**
+ * optionalToken — Optionally authenticates a request if Bearer token is provided.
+ * Does not block if token is omitted.
+ */
+const optionalToken = asyncHandler(async (req, _res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    req.user = null;
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, env.jwtSecret);
+    const user = await User.findById(decoded.id).select('_id name email role');
+    if (user) {
+      req.user = { id: user._id.toString(), name: user.name, email: user.email, role: user.role };
+    }
+  } catch {
+    req.user = null;
+  }
+  next();
+});
+
+module.exports = { verifyToken, optionalToken };
 

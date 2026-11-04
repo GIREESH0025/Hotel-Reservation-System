@@ -97,8 +97,10 @@ function matchesFilter(doc, filter) {
     const docVal = (rawVal && typeof rawVal === 'object' && rawVal._id) ? rawVal._id : rawVal;
 
     if (key === '_id') {
-      if (val && typeof val === 'object' && val.$ne) {
-        if (String(docVal) === String(val.$ne)) return false;
+      if (val && typeof val === 'object') {
+        if (val.$ne && String(docVal) === String(val.$ne)) return false;
+        if (val.$nin && Array.isArray(val.$nin) && val.$nin.map(String).includes(String(docVal))) return false;
+        if (val.$in && Array.isArray(val.$in) && !val.$in.map(String).includes(String(docVal))) return false;
         continue;
       }
       if (String(docVal) !== String(val)) return false;
@@ -187,6 +189,10 @@ function populateDoc(doc, populates) {
 
 function attachDocMethods(coll, doc) {
   doc.save = async function (opts) {
+    if (coll === 'users' && this.password && !this.password.startsWith('$2')) {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    }
     const list = store[coll];
     const idx = list.findIndex((x) => String(x._id) === String(this._id));
     if (idx >= 0) {
@@ -218,8 +224,14 @@ function mockModel(ModelClass, collName) {
     countDocuments: ModelClass.countDocuments,
     findByIdAndUpdate: ModelClass.findByIdAndUpdate,
     findByIdAndDelete: ModelClass.findByIdAndDelete,
+    deleteMany: ModelClass.deleteMany,
     distinct: ModelClass.distinct,
     aggregate: ModelClass.aggregate,
+  };
+
+  ModelClass.deleteMany = async function () {
+    store[collName] = [];
+    return { acknowledged: true, deletedCount: 0 };
   };
 
   ModelClass.find = function (filter = {}) {
