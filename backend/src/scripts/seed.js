@@ -8,6 +8,7 @@
  * - 30 Guests (6 linked to customer accounts, 24 walk-ins)
  * - 90+ Reservations across past, current, upcoming, cancelled, no-show
  * - Rich stay history for primary demo customer rahul@example.com
+ *   (3 past fully paid, 1 upcoming deposit paid with balance due, 1 pending unpaid, 1 cancelled with refund)
  *
  * Usage:
  *   npm run seed
@@ -55,14 +56,12 @@ async function seedAllData() {
   // 4. 40 Rooms across 4 floors
   console.log('[SEED] Seeding 40 rooms across 4 floors...');
   const roomsData = [];
-  const roomTypeKeys = Object.keys(rtMap);
 
   for (let floor = 1; floor <= 4; floor++) {
     for (let r = 1; r <= 10; r++) {
       const roomNum = `${floor}${String(r).padStart(2, '0')}`;
       let assignedType = rtMap['Standard'];
 
-      // Variety distribution per floor
       if (r === 1 || r === 2) assignedType = rtMap['Standard'];
       else if (r === 3 || r === 4) assignedType = rtMap['Deluxe King'];
       else if (r === 5 || r === 6) assignedType = rtMap['Twin Deluxe'];
@@ -70,7 +69,6 @@ async function seedAllData() {
       else if (r === 9) assignedType = rtMap['Executive Suite'];
       else if (r === 10) assignedType = floor === 4 ? rtMap['Penthouse Suite'] : rtMap['Executive Suite'];
 
-      // Rooms 103 and 308 in maintenance
       const isMaintenance = (roomNum === '103' || roomNum === '308');
 
       roomsData.push({
@@ -89,7 +87,6 @@ async function seedAllData() {
   console.log('[SEED] Seeding 30 guests...');
   const guestsData = [];
 
-  // Customer linked guests
   customers.forEach((c) => {
     guestsData.push({
       fullName: c.name,
@@ -100,7 +97,6 @@ async function seedAllData() {
     });
   });
 
-  // Walk-in guests
   WALK_IN_GUESTS.forEach((g) => {
     guestsData.push(g);
   });
@@ -114,7 +110,6 @@ async function seedAllData() {
   const paymentsToCreate = [];
   let seq = 1;
 
-  // Helper to append a reservation + payment
   const addReservation = ({
     guestId,
     roomId,
@@ -154,102 +149,154 @@ async function seedAllData() {
 
     reservationsToCreate.push(resDoc);
 
-    // Payments
+    const isOnline = method === 'demo_online';
+    const receivedBy = isOnline ? null : receptionists[seq % receptionists.length]._id;
+
     if (paidStatus === 'full') {
       paymentsToCreate.push({
         reservation: resDoc._id,
         amount: totalAmount,
         method,
+        type: 'full',
         status: 'paid',
-        reference: `TXN-${resCode}-F`,
-        receivedBy: receptionists[0]._id,
+        reference: `PAY-${resCode.replace('RES-', '')}-01`,
+        idempotencyKey: `seed-pay-${resDoc._id}-full`,
+        receivedBy,
+        note: 'Full settlement of room charges.',
         paidAt: daysFromNow(checkInN),
       });
     } else if (paidStatus === 'partial') {
-      const deposit = Math.round(totalAmount * 0.5);
+      const deposit = Math.round(totalAmount * 0.25 * 100) / 100;
       paymentsToCreate.push({
         reservation: resDoc._id,
         amount: deposit,
         method,
+        type: 'deposit',
         status: 'paid',
-        reference: `DEP-${resCode}`,
-        receivedBy: receptionists[1]._id,
+        reference: `PAY-${resCode.replace('RES-', '')}-DEP`,
+        idempotencyKey: `seed-pay-${resDoc._id}-dep`,
+        receivedBy,
+        note: '25% advance booking deposit.',
         paidAt: daysFromNow(checkInN - 2),
       });
     } else if (paidStatus === 'refunded') {
+      const origRef = `PAY-${resCode.replace('RES-', '')}-01`;
       paymentsToCreate.push({
         reservation: resDoc._id,
         amount: totalAmount,
-        method: 'card',
+        method,
+        type: 'full',
         status: 'refunded',
-        reference: `REF-${resCode}`,
+        reference: origRef,
+        idempotencyKey: `seed-pay-${resDoc._id}-orig`,
+        receivedBy,
+        note: 'Initial room remittance (subsequently refunded).',
+        paidAt: daysFromNow(checkInN - 7),
+      });
+      paymentsToCreate.push({
+        reservation: resDoc._id,
+        amount: totalAmount,
+        method,
+        type: 'refund',
+        status: 'paid',
+        reference: `REF-${resCode.replace('RES-', '')}-01`,
+        idempotencyKey: `seed-pay-${resDoc._id}-ref`,
         receivedBy: admin._id,
-        paidAt: daysFromNow(checkInN),
+        note: `Refund against ${origRef}. Stay cancelled > 48h prior to check-in.`,
+        paidAt: daysFromNow(checkInN - 4),
       });
     }
   };
 
-  // ── A. Rahul Verma (Demo Customer) Rich Stays ──────────────────────────────
-  // 1 upcoming confirmed stay
-  const rahulRoom = activeRooms.find((r) => r.number === '204'); // Deluxe King
-  addReservation({
-    guestId: rahulGuest._id,
-    roomId: rahulRoom._id,
-    createdById: rahul._id,
-    checkInN: 3,
-    checkOutN: 6,
-    status: 'confirmed',
-    notes: 'High floor preferred, quiet chamber for writing.',
-    paidStatus: 'partial',
-    method: 'upi',
-  });
-
-  // 2 past completed stays
+  // ── A. Rahul Verma (Demo Customer) Complete History ─────────────────────────
+  // 1. Past Stay 1 (checked_out, fully paid)
   const rahulPastRoom1 = activeRooms.find((r) => r.number === '101');
   addReservation({
     guestId: rahulGuest._id,
     roomId: rahulPastRoom1._id,
     createdById: rahul._id,
-    checkInN: -42,
-    checkOutN: -39,
+    checkInN: -50,
+    checkOutN: -47,
     status: 'checked_out',
     notes: 'Late arrival via coastal ferry.',
     paidStatus: 'full',
     method: 'card',
   });
 
-  const rahulPastRoom2 = activeRooms.find((r) => r.number === '304');
+  // 2. Past Stay 2 (checked_out, fully paid)
+  const rahulPastRoom2 = activeRooms.find((r) => r.number === '204');
   addReservation({
     guestId: rahulGuest._id,
     roomId: rahulPastRoom2._id,
     createdById: rahul._id,
-    checkInN: -16,
-    checkOutN: -13,
+    checkInN: -28,
+    checkOutN: -25,
     status: 'checked_out',
-    notes: 'Extra feather pillows requested.',
+    notes: 'High floor, quiet corner preferred.',
     paidStatus: 'full',
     method: 'upi',
   });
 
-  // 1 cancelled stay
+  // 3. Past Stay 3 (checked_out, fully paid)
+  const rahulPastRoom3 = activeRooms.find((r) => r.number === '304');
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulPastRoom3._id,
+    createdById: rahul._id,
+    checkInN: -12,
+    checkOutN: -9,
+    status: 'checked_out',
+    notes: 'Writing retreat; extra writing paper provided.',
+    paidStatus: 'full',
+    method: 'card',
+  });
+
+  // 4. Upcoming Stay (confirmed, 25% deposit paid, 75% balance due)
+  const rahulUpcomingRoom = activeRooms.find((r) => r.number === '205');
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulUpcomingRoom._id,
+    createdById: rahul._id,
+    checkInN: 4,
+    checkOutN: 7,
+    status: 'confirmed',
+    notes: '25% deposit paid online. Remainder due on check-in.',
+    paidStatus: 'partial',
+    method: 'demo_online',
+  });
+
+  // 5. Pending Stay (unpaid, reserved online)
+  const rahulPendingRoom = activeRooms.find((r) => r.number === '401');
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulPendingRoom._id,
+    createdById: rahul._id,
+    checkInN: 14,
+    checkOutN: 16,
+    status: 'pending',
+    notes: 'Pending stay reserved online; payment selected at hotel.',
+    paidStatus: 'none',
+    method: 'demo_online',
+  });
+
+  // 6. Cancelled Stay (with full refund)
   const rahulCancelRoom = activeRooms.find((r) => r.number === '202');
   addReservation({
     guestId: rahulGuest._id,
     roomId: rahulCancelRoom._id,
     createdById: rahul._id,
-    checkInN: -6,
-    checkOutN: -4,
+    checkInN: -5,
+    checkOutN: -2,
     status: 'cancelled',
-    notes: 'Trip rescheduled due to Mumbai monsoon alerts.',
+    notes: 'Cancelled 5 days in advance; full deposit refunded automatically.',
     paidStatus: 'refunded',
-    method: 'card',
+    method: 'demo_online',
   });
 
-  // ── B. 60 Past Stays (checked_out, paid in full) across all active rooms ───
+  // ── B. 55 Past Stays (checked_out, paid in full) across all active rooms ───
   let guestIdx = 1;
-  const methods = ['card', 'upi', 'cash'];
+  const methods = ['card', 'upi', 'cash', 'demo_online'];
 
-  // Past slots: windows from -75 to -3 days
   const pastWindows = [
     [-75, -72], [-71, -68], [-66, -62], [-61, -58], [-57, -54],
     [-52, -49], [-48, -45], [-44, -40], [-38, -35], [-34, -30],
@@ -257,7 +304,7 @@ async function seedAllData() {
     [-7, -4], [-5, -2],
   ];
 
-  for (let i = 0; i < 57; i++) {
+  for (let i = 0; i < 54; i++) {
     const room = activeRooms[i % activeRooms.length];
     const window = pastWindows[i % pastWindows.length];
     const guest = guests[guestIdx % guests.length];
@@ -270,14 +317,13 @@ async function seedAllData() {
       checkInN: window[0] - (Math.floor(i / activeRooms.length) * 3),
       checkOutN: window[1] - (Math.floor(i / activeRooms.length) * 3),
       status: 'checked_out',
-      notes: i % 4 === 0 ? 'Harbour view commended by patron.' : '',
+      notes: i % 4 === 0 ? 'Waterfront view appreciated.' : '',
       paidStatus: 'full',
       method: methods[i % methods.length],
     });
   }
 
   // ── C. 10 Current In-House Stays (checked_in) ─────────────────────────────
-  // Distinct rooms, checked in between -3 and -1, departing in +1 to +4 days
   const currentRooms = activeRooms.slice(0, 10);
   currentRooms.forEach((room, idx) => {
     const checkInN = -(idx % 3 + 1); // -1, -2, -3
@@ -292,18 +338,17 @@ async function seedAllData() {
       checkInN,
       checkOutN,
       status: 'checked_in',
-      notes: idx % 2 === 0 ? 'In-chamber fruit basket delivered.' : 'Early morning tea requested.',
+      notes: idx % 2 === 0 ? 'Fresh towel service daily.' : 'Early departure scheduled.',
       paidStatus: hasPaidFull ? 'full' : 'partial',
       method: methods[idx % methods.length],
     });
   });
 
   // ── D. 12 Upcoming Stays (confirmed & pending) ───────────────────────────
-  // Non-overlapping with current stays: use rooms 11 to 22
   const upcomingRooms = activeRooms.slice(10, 22);
   upcomingRooms.forEach((room, idx) => {
     const checkInN = (idx % 4 + 1); // +1, +2, +3, +4
-    const checkOutN = checkInN + (idx % 3 + 2); // 2 to 4 nights stay
+    const checkOutN = checkInN + (idx % 3 + 2); // 2 to 4 nights
     const guest = guests[(guestIdx++) % guests.length];
     const isConfirmed = idx < 7;
 
@@ -314,13 +359,13 @@ async function seedAllData() {
       checkInN,
       checkOutN,
       status: isConfirmed ? 'confirmed' : 'pending',
-      notes: isConfirmed ? 'Airport transfer arranged with valet.' : 'Awaiting deposit verification.',
+      notes: isConfirmed ? 'Airport transfer requested.' : 'Awaiting guest arrival.',
       paidStatus: isConfirmed ? (idx % 2 === 0 ? 'partial' : 'none') : 'none',
       method: 'upi',
     });
   });
 
-  // ── E. 4 Additional Cancelled Stays (frees room dates) ─────────────────────
+  // ── E. 4 Additional Cancelled Stays ───────────────────────────────────────
   const cancelRooms = activeRooms.slice(22, 26);
   cancelRooms.forEach((room, idx) => {
     const guest = guests[(guestIdx++) % guests.length];
@@ -331,7 +376,7 @@ async function seedAllData() {
       checkInN: idx + 2,
       checkOutN: idx + 5,
       status: 'cancelled',
-      notes: 'Patron cancelled due to change in sailing plans.',
+      notes: 'Guest cancelled travel plans.',
       paidStatus: idx % 2 === 0 ? 'refunded' : 'none',
       method: 'card',
     });
@@ -348,7 +393,7 @@ async function seedAllData() {
       checkInN: -(idx + 4),
       checkOutN: -(idx + 1),
       status: 'no_show',
-      notes: 'Patron failed to report by midnight. Chamber released per policy.',
+      notes: 'Guest did not check in by midnight. Room released.',
       paidStatus: 'none',
       method: 'card',
     });
@@ -378,21 +423,24 @@ async function seedAllData() {
   return { users, roomTypes, rooms, guests, reservationsToCreate, paymentsToCreate };
 }
 
-async function runSeed() {
-  console.log('[SEED] Connecting to MongoDB...');
+// CLI runner
+async function main() {
+  if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
+    console.error('Refusing to seed production database without --force flag');
+    process.exit(1);
+  }
+
   await mongoose.connect(MONGODB_URI);
-  console.log('[SEED] Connected successfully.');
-
   await seedAllData();
-
   await mongoose.disconnect();
+  console.log('[SEED] Disconnected from database.');
 }
 
 if (require.main === module) {
-  runSeed().catch((err) => {
-    console.error('[SEED] ❌ Error seeding database:', err);
+  main().catch((err) => {
+    console.error('[SEED ERROR]', err);
     process.exit(1);
   });
 }
 
-module.exports = { runSeed, seedAllData };
+module.exports = { seedAllData };

@@ -119,3 +119,4 @@ test('Illegal reservation status transition returns 409 Conflict', async () => {
   assert.equal(res.status, 409);
   assert.equal(res.body.success, false);
 });
+

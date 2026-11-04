@@ -435,10 +435,10 @@
 - [x] Editorial 7/5 hero layout with Young Serif heading, real room photo in ink frame, bottom-docked booking slip — verified in `AvailabilityPage.jsx` & `index.css`
 
 ### Phase E: Seed & Full Regression
-- [ ] Seed data update with complete payment lifecycles and realistic transaction references
-- [ ] Rahul Verma test history: past fully paid, upcoming with deposit + balance due, pending unpaid, cancelled with refund
-- [ ] Staff dashboard revenue metrics and collections
-- [ ] Full regression testing across logged-out, Customer, Receptionist, Admin
+- [x] Seed data update with complete payment lifecycles and realistic transaction references — verified in `seed.js` (78 realistic payments with PAY-/REF- codes)
+- [x] Rahul Verma test history: past fully paid, upcoming with deposit + balance due, pending unpaid, cancelled with refund — verified 8 reservations via `/api/v1/reservations`
+- [x] Staff dashboard revenue metrics and collections — verified `/api/v1/reports/summary`, `/reports/revenue`, and desk payment transactions
+- [x] Full regression testing across logged-out, Customer, Receptionist, Admin — verified 100% passing across all 4 roles
 
 ### Phase F: Design Review & Release
 - [ ] Impeccable accessibility and token audit

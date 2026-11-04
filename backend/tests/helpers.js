@@ -317,6 +317,58 @@ function mockModel(ModelClass, collName) {
   };
 
   ModelClass.aggregate = async function (pipeline = []) {
+    if (collName === 'payments') {
+      const matchStage = pipeline.find((s) => s.$match);
+      let list = (store.payments || []).filter((p) => p.status === 'paid');
+      if (matchStage && matchStage.$match && matchStage.$match.paidAt) {
+        const { $gte, $lte } = matchStage.$match.paidAt;
+        if ($gte) list = list.filter((p) => new Date(p.paidAt) >= new Date($gte));
+        if ($lte) list = list.filter((p) => new Date(p.paidAt) <= new Date($lte));
+      }
+      const dayMap = {};
+      for (const p of list) {
+        const d = new Date(p.paidAt || Date.now());
+        const key = d.toISOString().split('T')[0];
+        if (!dayMap[key]) dayMap[key] = { date: key, totalRevenue: 0, count: 0 };
+        dayMap[key].totalRevenue += Number(p.amount || 0);
+        dayMap[key].count += 1;
+      }
+      return Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    if (collName === 'rooms') {
+      const rooms = store.rooms || [];
+      const rts = store.roomtypes || [];
+      const reservations = store.reservations || [];
+      const activeResRooms = new Set(
+        reservations
+          .filter((r) => r.status === 'checked_in')
+          .map((r) => String(r.room && r.room._id ? r.room._id : r.room))
+      );
+
+      return rts.map((rt) => {
+        const rtIdStr = String(rt._id);
+        const matchingRooms = rooms.filter((rm) => {
+          const rmRtId = rm.roomType && rm.roomType._id ? rm.roomType._id : rm.roomType;
+          return String(rmRtId) === rtIdStr;
+        });
+        const total = matchingRooms.length;
+        const active = matchingRooms.filter((rm) => activeResRooms.has(String(rm._id))).length;
+        const maint = matchingRooms.filter((rm) => rm.status === 'maintenance').length;
+        const avail = Math.max(0, total - active - maint);
+        const rate = total > 0 ? Math.round((active / total) * 1000) / 10 : 0;
+
+        return {
+          roomType: { name: rt.name, baseRate: rt.baseRate },
+          totalRooms: total,
+          activeRooms: active,
+          maintenanceRooms: maint,
+          availableRooms: avail,
+          occupancyRate: rate,
+        };
+      });
+    }
+
     return [];
   };
 }

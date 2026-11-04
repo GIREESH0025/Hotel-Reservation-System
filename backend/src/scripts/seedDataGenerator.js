@@ -113,3 +113,4 @@ module.exports = {
   ROOM_TYPES_DATA,
   WALK_IN_GUESTS,
 };
+
