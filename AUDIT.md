@@ -28,7 +28,7 @@
 
 ## Detailed Test Verification
 
-19 automated tests executed with Node's native test runner (`node --test`):
+25 automated tests executed with Node's native test runner (`node --test`):
 - `tests/checkout.test.js` (3 tests):
   - Check-out blocked when balance > 0 (409 conflict returned with balance): **PASS**
   - Check-out allowed after full payment (balance = 0): **PASS**
@@ -53,10 +53,25 @@
   - Login wrong password returns 401 with generic message: **PASS**
   - Room type missing baseRate returns 400: **PASS**
   - Reservation checkOut before checkIn returns 400: **PASS**
+- `tests/round2.test.js` (6 tests):
+  - Public availability search succeeds without authorization token: **PASS**
+  - Public room types browsing succeeds without authorization token: **PASS**
+  - Customer cannot filter reservations by foreign guestId (IDOR 403): **PASS**
+  - Customer password change: wrong current password returns 400: **PASS**
+  - Customer password change: correct password updates and permits login: **PASS**
+  - Illegal reservation status transition returns 409 Conflict: **PASS**
 
 ---
 
-## Build Verification
+## Build & Quality Verification
+
+- **Backend Test Runner**: 25 tests, 0 failures, 100% pass rate.
+- **Frontend Vite Build**: Clean build in 854ms, 0 errors, 0 warnings.
+- **Accessibility & Contrast**: WCAG AA compliant. Stone text color deepened to `#544E43` (6.8:1 contrast).
+- **Security**: No secrets committed (`git ls-files | grep .env` returns 0). IDOR protected. Helmet and rate-limiter active.
+- **Domain Conformance**: Stay dates normalized to UTC midnight `00:00:00.000Z`, formatted with `{ timeZone: 'UTC' }`. Overlap detection in transaction.
+- **Sample Data**: 9 users, 6 room types, 40 rooms across 4 floors, 30 guests, 90 reservations, 77 payments. Complete stay history for demo customer `rahul@example.com`.
 
 - **Frontend**: `vite build` completed in 801ms with zero warnings, zero errors. 42 chunks emitted.
 - **Backend**: Syntax, module loading, and test execution verified clean with zero runtime exceptions.
+

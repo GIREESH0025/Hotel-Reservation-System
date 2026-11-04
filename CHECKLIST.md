@@ -360,6 +360,48 @@
 
 ---
 
+## Fix Round 2 — Deep QA, Defect Remediation & Production Experience
+
+### Phase A: Audit & Defect Hunting
+- [x] Comprehensive audit across all routes, roles, states and network calls — verified via live HTTP probe & code walkthrough
+- [x] BUGS.md created with complete triage table (ID, severity, location, repro steps, root cause, status) — verified in `BUGS.md`
+- [x] Design and accessibility audit recorded — verified via `npx impeccable detect` and color contrast calculations
+
+### Phase B: Defect Remediation
+- [x] BUG-01 (P0): Header public nav ignores logged-in state — verified in `Layout.jsx` with active session indicator
+- [x] BUG-02 (P0): Public availability & room types blocked by 401 — verified via HTTP GET returning 200 unauthenticated
+- [x] BUG-03 (P0): Customer IDOR protection on reservations & payments — verified in `reservation.controller.js` & `payment.controller.js` (403 returned)
+- [x] BUG-04 (P1): Login redirection with target state preservation — verified in `ProtectedRoute.jsx` & `LoginPage.jsx`
+- [x] BUG-05 (P1): Password change endpoint & form for customer profile — verified in `user.controller.js` & `MyProfilePage.jsx`
+- [x] BUG-06 (P1): Customer area tabs & printable folio view — verified in `MyReservationsPage.jsx` & `MyReservationDetailPage.jsx`
+- [x] BUG-07 (P1): Date shifting and timezone handling across boundaries — verified UTC midnight stay dates & `{ timeZone: 'UTC' }`
+- [x] BUG-08 (P1): Status transitions returning 409 Conflict — verified in `reservation.service.js` & `round2.test.js`
+- [x] BUG-09 (P2): Contrast ratio on stone text — verified `--color-stone: #544E43` achieves >6:1 contrast (WCAG AA pass)
+- [x] BUG-10 (P2): Error boundary, dynamic document titles, favicon, and meta tags — verified in `ErrorBoundary.jsx`, `useTitle.js`, `favicon.svg`
+- [x] BUG-11 (P2): Public boutique hotel experience (hero, policies, FAQ, amenities, gallery) — verified in `AvailabilityPage.jsx` & `hotel.config.js`
+- [x] BUG-12 (P2): Rich realistic sample data with relative dates — verified in `seedDataGenerator.js` & `seed.js` (90 reservations)
+
+### Phase C: Missing Features & Enhancements
+- [x] Dynamic Header with role-based menus (Customer, Receptionist, Admin) and responsive mobile drawer — verified in `Layout.jsx`
+- [x] Customer Area (/my/bookings, /my/bookings/:id printable folio, /my/profile with stats & password change) — verified in `App.jsx`, `MyReservationsPage.jsx`, `MyReservationDetailPage.jsx`
+- [x] Public Boutique Hotel Experience (hero, stay policies, FAQ accordion, amenities, contact details, room imagery) — verified in `AvailabilityPage.jsx`
+- [x] Guest booking flow preserving search params across login — verified in `BookPage.jsx` & `LoginPage.jsx`
+
+### Phase D: Rich Realistic Sample Data
+- [x] Relative date generator (dates anchored dynamically to current execution time) — verified in `seedDataGenerator.js`
+- [x] 6 room types with INR rates, 40 rooms across 4 floors, 30 guests, 90+ reservations — verified via `/api/v1/rooms/availability` & database seed log
+- [x] Rich test customer history for rahul@example.com (upcoming, past, cancelled) — verified 6 reservations on record
+- [x] Idempotent seed CLI scripts (`npm run seed` and `npm run seed:reset`) — verified in `backend/package.json` & `seed.js`
+
+### Phase E: Impeccable Polish & Production Readiness
+- [x] Impeccable design system compliance (Young Serif, Schibsted Grotesk, ink/paper tokens, tabular nums) — verified in `index.css` & components
+- [x] Responsive layouts across 360px, 768px, 1440px — verified mobile drawer and responsive data tables
+- [x] All automated tests passing (backend test suite) — verified 25/25 tests passing (`npm --prefix backend test`)
+- [x] Frontend clean build with zero warnings/errors — verified `vite build` completed cleanly in 854ms
+- [x] Git commit hygiene and zero committed secrets — verified git status & `git ls-files | grep .env` (clean)
+
+---
+
 ## HUMAN-only Tasks
 
 > Do NOT tick these — prepare exact instructions in DEPLOY.md

@@ -182,3 +182,4 @@ export default function ReservationsListPage() {
     </div>
   )
 }
+

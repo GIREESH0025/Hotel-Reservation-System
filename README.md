@@ -174,17 +174,18 @@ npm run dev        # starts on http://localhost:5173
 ### Backend
 
 ```bash
-npm run dev      # Development with nodemon
-npm start        # Production start
-npm test         # Run automated tests
-npm run seed     # Seed database with demo data
+npm run dev         # Development with nodemon
+npm start           # Production start
+npm test            # Run automated test suite (25/25 passing)
+npm run seed        # Seed database with rich sample data (90 reservations)
+npm run seed:reset  # Idempotently reset and recreate sample data
 ```
 
 ### Frontend
 
 ```bash
-npm run dev      # Development Vite server
-npm run build    # Production build
+npm run dev      # Development Vite server (port 5173)
+npm run build    # Production build (optimized Vite bundle)
 npm run preview  # Preview production build locally
 ```
 
@@ -196,28 +197,46 @@ npm run preview  # Preview production build locally
 
 | Method | Route | Description | Roles |
 |---|---|---|---|
-| POST | /auth/register | Register (creates Customer) | Public |
-| POST | /auth/login | Login | Public |
-| POST | /auth/logout | Logout | Public |
-| GET | /auth/me | Current user | Auth |
-| GET | /users | List users | Admin |
-| PATCH | /users/:id | Update user/role | Admin, Customer (own) |
+| POST | /auth/register | Register (creates Customer + Guest record) | Public |
+| POST | /auth/login | Login (returns JWT) | Public |
+| POST | /auth/logout | Logout (stateless client clearance) | Public |
+| GET | /auth/me | Current user profile | Auth |
+| GET | /users | List users (paginated, role filter) | Admin |
+| GET | /users/:id | User detail | Admin, Receptionist, Customer (own) |
+| PATCH | /users/:id | Update user details / role | Admin, Customer (own) |
+| PATCH | /users/change-password | Change authenticated user password | Auth (Self) |
 | DELETE | /users/:id | Delete user | Admin |
-| GET | /room-types | List room types | All |
+| GET | /room-types | List room types (public gallery) | Public |
+| GET | /room-types/:id | Room type detail | Public |
 | POST | /room-types | Create room type | Admin |
 | PATCH | /room-types/:id | Update room type | Admin |
 | DELETE | /room-types/:id | Delete room type | Admin |
-| GET | /rooms/availability | Search available rooms | All |
+| GET | /rooms/availability | Search available chambers | Public |
 | GET | /rooms | List rooms | Admin, Receptionist |
 | POST | /rooms | Create room | Admin |
-| PATCH | /rooms/:id | Update room | Admin, Receptionist |
+| PATCH | /rooms/:id | Update room (maintenance toggle) | Admin, Receptionist |
 | DELETE | /rooms/:id | Delete room | Admin |
 | GET | /guests | List guests | Admin, Receptionist, Customer (own) |
+| GET | /guests/:id | Guest detail | Admin, Receptionist, Customer (own) |
 | POST | /guests | Create guest | Admin, Receptionist |
 | PATCH | /guests/:id | Update guest | Admin, Receptionist |
 | DELETE | /guests/:id | Delete guest | Admin |
-| GET | /reservations | List reservations | All (Customer: own only) |
-| POST | /reservations | Create reservation | All |
+| GET | /reservations | List reservations (paginated, filters) | All (Customer: own only) |
+| GET | /reservations/:id | Reservation detail + computed folio balance | All (Customer: own only) |
+| POST | /reservations | Create reservation (overlap guarded in tx) | All |
+| PATCH | /reservations/:id | Modify reservation chamber / dates | Admin, Receptionist |
+| PATCH | /reservations/:id/confirm | Confirm pending reservation | Admin, Receptionist |
+| PATCH | /reservations/:id/check-in | Check guest in | Admin, Receptionist |
+| PATCH | /reservations/:id/check-out | Check guest out (blocked if balance > 0) | Admin, Receptionist |
+| PATCH | /reservations/:id/cancel | Cancel reservation (releases dates) | All (Customer: own pending/confirmed) |
+| DELETE | /reservations/:id | Delete reservation record | Admin |
+| GET | /payments | List payments (paginated, filters) | Admin, Receptionist, Customer (own) |
+| GET | /payments/:id | Payment receipt detail | Admin, Receptionist, Customer (own) |
+| POST | /payments | Record guest payment (card, upi, cash) | Admin, Receptionist |
+| PATCH | /payments/:id/refund | Refund payment | Admin |
+| GET | /reports/summary | Today operational register summary | Admin, Receptionist |
+| GET | /reports/revenue | Revenue ledger by period | Admin |
+| GET | /reports/occupancy | Occupancy percentages by chamber type | Admin |
 | PATCH | /reservations/:id | Update reservation | Admin, Receptionist |
 | PATCH | /reservations/:id/confirm | Confirm | Admin, Receptionist |
 | PATCH | /reservations/:id/check-in | Check in | Admin, Receptionist |
