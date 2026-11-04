@@ -8,8 +8,10 @@ import { Button } from '../components/ui/Button'
 import { Skeleton } from '../components/ui/Skeleton'
 import { ErrorState } from '../components/ui/ErrorState'
 import { formatINR, formatDate, computeNights } from '../utils/helpers'
+import { useTitle } from '../hooks/useTitle'
 
 export default function BookPage() {
+  useTitle('Review & Confirm Stay')
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -71,7 +73,7 @@ export default function BookPage() {
       })
       const code = res.data?.data?.reservationCode
       success(`Reservation confirmed! Code: ${code}`)
-      navigate(`/my/reservations/${res.data?.data?._id || ''}`)
+      navigate(`/my/bookings/${res.data?.data?._id || ''}`)
     } catch (err) {
       const msg = err.response?.data?.message || 'Booking failed. The room may have been reserved by another guest.'
       error(msg)
@@ -207,3 +209,4 @@ export default function BookPage() {
     </div>
   )
 }
+

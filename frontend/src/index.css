@@ -18,8 +18,8 @@
   --color-ochre-bg: #FBF5E8;
   --color-slate:    #2F4858;
   --color-slate-bg: #EBF0F3;
-  --color-stone:    #8A8173;
-  --color-stone-bg: #F5F3EF;
+  --color-stone:    #544E43; /* Adjusted for WCAG AA compliance (>6:1 contrast against #F3EEE4) */
+  --color-stone-bg: #EAE5DB;
   --color-error:    #B42318;
   --color-error-bg: #FEF3F2;
 

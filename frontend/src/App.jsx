@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 import { AppLayout, PublicLayout } from './components/ui/Layout'
+import { ErrorBoundary } from './components/ui/ErrorBoundary'
 
 // Lazy-loaded pages (reduces initial bundle)
 import { lazy, Suspense } from 'react'
@@ -48,48 +49,65 @@ function PageFallback() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <Suspense fallback={<PageFallback />}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<PublicLayout><AvailabilityPage /></PublicLayout>} />
-            <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
-            <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
-            <Route
-              path="/book"
-              element={
-                <ProtectedRoute allowedRoles={['customer']}>
-                  <PublicLayout><BookPage /></PublicLayout>
-                </ProtectedRoute>
-              }
-            />
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<PublicLayout><AvailabilityPage /></PublicLayout>} />
+              <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
+              <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
+              <Route
+                path="/book"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <PublicLayout><BookPage /></PublicLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Customer routes */}
-            <Route
-              path="/my/reservations"
-              element={
-                <ProtectedRoute allowedRoles={['customer']}>
-                  <AppLayout><MyReservationsPage /></AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my/reservations/:id"
-              element={
-                <ProtectedRoute allowedRoles={['customer']}>
-                  <AppLayout><MyReservationDetailPage /></AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my/profile"
-              element={
-                <ProtectedRoute allowedRoles={['customer']}>
-                  <AppLayout><MyProfilePage /></AppLayout>
-                </ProtectedRoute>
-              }
-            />
+              {/* Customer routes */}
+              <Route
+                path="/my/bookings"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <AppLayout><MyReservationsPage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my/bookings/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <AppLayout><MyReservationDetailPage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my/reservations"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <AppLayout><MyReservationsPage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my/reservations/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <AppLayout><MyReservationDetailPage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <AppLayout><MyProfilePage /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
 
             {/* Staff routes (admin + receptionist) */}
             <Route
@@ -199,6 +217,7 @@ export default function App() {
         </Suspense>
       </ToastProvider>
     </AuthProvider>
-  )
+  </ErrorBoundary>
+)
 }
 

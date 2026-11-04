@@ -1,16 +1,17 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Skeleton } from '../components/ui/Skeleton'
 
 /**
  * ProtectedRoute — Guards a route behind authentication + role check.
  * - If auth is loading: show loading skeleton
- * - If not authenticated: redirect to /login
+ * - If not authenticated: redirect to /login with state={{ from: location }}
  * - If authenticated but wrong role: redirect to /403
  * - Otherwise: render children
  */
 export function ProtectedRoute({ children, allowedRoles = [] }) {
   const { user, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return (
@@ -24,7 +25,7 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {

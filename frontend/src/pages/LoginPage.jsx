@@ -18,7 +18,11 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const from = location.state?.from?.pathname || '/'
+  const from = location.state?.from
+    ? (typeof location.state.from === 'string'
+        ? location.state.from
+        : `${location.state.from.pathname || '/'}${location.state.from.search || ''}`)
+    : '/'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -47,7 +51,7 @@ export default function LoginPage() {
       } else if (user.role === 'admin' || user.role === 'receptionist') {
         navigate('/staff/dashboard', { replace: true })
       } else {
-        navigate('/my/reservations', { replace: true })
+        navigate('/my/bookings', { replace: true })
       }
     } catch (err) {
       setServerError(
@@ -142,3 +146,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

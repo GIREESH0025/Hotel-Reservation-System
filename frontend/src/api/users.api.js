@@ -6,5 +6,6 @@ export const usersApi = {
   update: (id, data) => api.patch(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
   me: () => api.get('/auth/me'),
+  changePassword: (data) => api.patch('/users/change-password', data),
 }
 

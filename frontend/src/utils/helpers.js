@@ -20,12 +20,16 @@ export function formatINR(amount) {
 export function formatDate(date, format = 'short') {
   if (!date) return '—'
   const d = new Date(date)
-  if (isNaN(d)) return '—'
+  if (isNaN(d.getTime())) return '—'
+
+  // If the string is a date-only YYYY-MM-DD or ISO UTC string, formatting with timeZone: 'UTC'
+  // prevents timezone shifting (e.g. 12 Nov becoming 11 Nov in UTC- or late-night IST).
+  const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}(T00:00:00(\.000)?Z?)?$/.test(date.trim())
 
   const options = {
-    short: { day: '2-digit', month: 'short', year: 'numeric' },
-    long: { weekday: 'short', day: '2-digit', month: 'long', year: 'numeric' },
-    numeric: { day: '2-digit', month: '2-digit', year: 'numeric' },
+    short: { day: '2-digit', month: 'short', year: 'numeric', ...(isDateOnly ? { timeZone: 'UTC' } : {}) },
+    long: { weekday: 'short', day: '2-digit', month: 'long', year: 'numeric', ...(isDateOnly ? { timeZone: 'UTC' } : {}) },
+    numeric: { day: '2-digit', month: '2-digit', year: 'numeric', ...(isDateOnly ? { timeZone: 'UTC' } : {}) },
   }
   return d.toLocaleDateString('en-IN', options[format] || options.short)
 }
