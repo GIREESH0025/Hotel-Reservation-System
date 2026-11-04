@@ -7,3 +7,4 @@ module.exports = {
   cancellationFreeHours: 48,
   taxPercent: 0,
 };
+
