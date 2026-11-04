@@ -1,0 +1,115 @@
+'use strict';
+/**
+ * seedDataGenerator.js
+ * Generates rich, realistic, relative-date sample data for Harbour Row Hotel.
+ * Safe for use both in MongoDB seed scripts and in-memory test/demo mock environments.
+ */
+
+function daysFromNow(n) {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + n);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+function formatDateCode(d, seq) {
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `RES-${year}${month}${day}-${String(seq).padStart(4, '0')}`;
+}
+
+const USERS_DATA = [
+  // 1 Admin
+  { name: 'Aditya Mehta', email: 'admin@harbourrow.com', password: 'Admin@1234', role: 'admin', phone: '+91 98200 11001' },
+  // 2 Receptionists
+  { name: 'Priya Sharma', email: 'priya@harbourrow.com', password: 'Staff@1234', role: 'receptionist', phone: '+91 98200 11002' },
+  { name: 'Karan Joshi', email: 'karan@harbourrow.com', password: 'Staff@1234', role: 'receptionist', phone: '+91 98200 11003' },
+  // 6 Customers (Rahul Verma is the primary demo user)
+  { name: 'Rahul Verma', email: 'rahul@example.com', password: 'Guest@1234', role: 'customer', phone: '+91 98111 22334' },
+  { name: 'Ananya Deshmukh', email: 'ananya@example.com', password: 'Guest@1234', role: 'customer', phone: '+91 98222 33445' },
+  { name: 'Vikram Malhotra', email: 'vikram@example.com', password: 'Guest@1234', role: 'customer', phone: '+91 98333 44556' },
+  { name: 'Sunita Rao', email: 'sunita@example.com', password: 'Guest@1234', role: 'customer', phone: '+91 98444 55667' },
+  { name: 'David Miller', email: 'david@example.com', password: 'Guest@1234', role: 'customer', phone: '+44 7700 900123' },
+  { name: 'Meera Nambiar', email: 'meera@example.com', password: 'Guest@1234', role: 'customer', phone: '+91 98555 66778' },
+];
+
+const ROOM_TYPES_DATA = [
+  {
+    name: 'Standard',
+    description: 'Refined standard chamber overlooking the quiet courtyard. Featuring queen bedding and historic appointments.',
+    baseRate: 2800,
+    capacity: 2,
+    amenities: ['Wi-Fi', 'Air Conditioning', 'En-suite Shower', 'Tea/Coffee Maker', 'In-room Safe'],
+  },
+  {
+    name: 'Deluxe King',
+    description: 'Generous chamber with king bedding, private veranda, and antique writing bureau.',
+    baseRate: 4800,
+    capacity: 3,
+    amenities: ['Wi-Fi', 'Air Conditioning', 'King Bed', 'City View Balcony', 'Mini Bar', 'Bathtub'],
+  },
+  {
+    name: 'Twin Deluxe',
+    description: 'Twin mahogany single beds with generous sitting space, tailored for traveling companions or colleagues.',
+    baseRate: 4500,
+    capacity: 2,
+    amenities: ['Wi-Fi', 'Air Conditioning', 'Twin Beds', 'Work Desk', 'Mini Bar', 'Walk-in Closet'],
+  },
+  {
+    name: 'Executive Suite',
+    description: 'Expansive two-room suite featuring harbour water views, separate salon, and dedicated butler reception.',
+    baseRate: 8500,
+    capacity: 4,
+    amenities: ['Wi-Fi', 'Air Conditioning', 'Ocean View', 'Living Salon', 'Smart TV', 'Jacuzzi', 'Butler Service'],
+  },
+  {
+    name: 'Penthouse Suite',
+    description: 'Our premier rooftop residency with private plunge pool, panoramic terrace, and private dining salon.',
+    baseRate: 18000,
+    capacity: 6,
+    amenities: ['Wi-Fi', 'Air Conditioning', 'Panoramic Terrace', 'Private Plunge Pool', 'Full Kitchen', 'Dedicated Valet', 'Dining Hall'],
+  },
+  {
+    name: 'Accessible Queen',
+    description: 'Barrier-free ground chamber with wide doorways, roll-in rain shower, support rails, and emergency assistance.',
+    baseRate: 3600,
+    capacity: 2,
+    amenities: ['Wi-Fi', 'Air Conditioning', 'Step-Free Access', 'Roll-in Shower', 'Grab Bars', 'Wide Clearance'],
+  },
+];
+
+const WALK_IN_GUESTS = [
+  { fullName: 'Rajesh Gopinath', phone: '+91 98112 00001', email: 'rajesh.g@tcs-corp.com', idProof: 'PAN: ABCPG1234K' },
+  { fullName: 'Shalini Sengupta', phone: '+91 98112 00002', email: 'shalini.s@kolkata.in', idProof: 'Aadhaar: 4421 8890 1234' },
+  { fullName: 'Kavita Patel', phone: '+91 98112 00003', email: 'kavita.p@ahmedabad.com', idProof: 'Passport: Z8921443' },
+  { fullName: 'Arjun Singhania', phone: '+91 98112 00004', email: 'arjun@singhania.org', idProof: 'Aadhaar: 7721 4455 9901' },
+  { fullName: 'Rohan Bhattacharya', phone: '+91 98112 00005', email: 'rohan.b@bengal.ac.in', idProof: 'Voter ID: WB/04/12998' },
+  { fullName: 'Deepa Krishnan', phone: '+91 98112 00006', email: 'deepa.k@chennai.net', idProof: 'Aadhaar: 3311 9900 8821' },
+  { fullName: 'Farhan Merchant', phone: '+91 98112 00007', email: 'farhan@merchanttrade.in', idProof: 'Passport: S1129984' },
+  { fullName: 'Preeti Nair', phone: '+91 98112 00008', email: 'preeti.n@kochi.in', idProof: 'Aadhaar: 8812 3344 5566' },
+  { fullName: 'Vivek Oberoi', phone: '+91 98112 00009', email: 'vivek@mumbaifilms.com', idProof: 'Driving Lic: MH01-2019-0091' },
+  { fullName: 'Zoya Akhtar', phone: '+91 98112 00010', email: 'zoya@tigerbaby.in', idProof: 'Passport: M4491209' },
+  { fullName: 'Robert Sterling', phone: '+1 212 555 0192', email: 'r.sterling@manhattan.com', idProof: 'US Passport: 994821102' },
+  { fullName: 'Elena Rostova', phone: '+44 20 7946 0991', email: 'elena@londonart.co.uk', idProof: 'UK Passport: 554901882' },
+  { fullName: 'Hiroshi Tanaka', phone: '+81 3 5555 0143', email: 'tanaka@tokyotrade.jp', idProof: 'Japan Passport: TR991204' },
+  { fullName: 'Nikhil Kamath', phone: '+91 98112 00014', email: 'nikhil@zerodha.tech', idProof: 'PAN: AAAPN4412K' },
+  { fullName: 'Tanvi Shah', phone: '+91 98112 00015', email: 'tanvi.shah@pwc.com', idProof: 'Aadhaar: 1109 4432 9988' },
+  { fullName: 'Amitabh Sen', phone: '+91 98112 00016', email: 'amitabh@oxford.edu', idProof: 'Passport: P9081245' },
+  { fullName: 'Clara Dupont', phone: '+33 1 42 68 55 00', email: 'clara@parisdesign.fr', idProof: 'EU ID: 882190-FR' },
+  { fullName: 'Siddharth Roy', phone: '+91 98112 00018', email: 'sid.roy@utv.com', idProof: 'Aadhaar: 5521 8800 1199' },
+  { fullName: 'Maya Angelis', phone: '+30 21 0368 9000', email: 'maya@athens.gr', idProof: 'Greek Passport: GR772109' },
+  { fullName: 'Kishore Kumar', phone: '+91 98112 00020', email: 'kishore@soundtracks.in', idProof: 'Voter ID: MH/01/99214' },
+  { fullName: 'Tara Sutaria', phone: '+91 98112 00021', email: 'tara@mumbaimodels.in', idProof: 'Passport: K2290118' },
+  { fullName: 'Sanjay Dutt', phone: '+91 98112 00022', email: 'sanjay@bandra.in', idProof: 'Aadhaar: 9944 2211 8800' },
+  { fullName: 'Amrita Pritam', phone: '+91 98112 00023', email: 'amrita@delhipoets.org', idProof: 'PAN: ABFPP9912Q' },
+  { fullName: 'Govind Swaminathan', phone: '+91 98112 00024', email: 'govind@iitb.ac.in', idProof: 'Aadhaar: 6633 1199 4422' },
+];
+
+module.exports = {
+  daysFromNow,
+  formatDateCode,
+  USERS_DATA,
+  ROOM_TYPES_DATA,
+  WALK_IN_GUESTS,
+};

@@ -1,51 +1,34 @@
 'use strict';
 /**
- * Idempotent seed script for Hotel Reservation System.
- * Creates: 1 admin, 1 receptionist, 1 customer
- *          4 room types, ~20 rooms, ~10 guests, ~25 reservations, matching payments.
+ * Idempotent Seed Script for Harbour Row Hotel.
+ * Populates:
+ * - 1 Admin, 2 Receptionists, 6 Customers
+ * - 6 Room Types with realistic INR tariffs
+ * - 40 Rooms across 4 floors (rooms 103 and 308 in maintenance)
+ * - 30 Guests (6 linked to customer accounts, 24 walk-ins)
+ * - 90+ Reservations across past, current, upcoming, cancelled, no-show
+ * - Rich stay history for primary demo customer rahul@example.com
  *
- * SAFETY: Refuses to run in production without --force flag.
- * Usage: node src/scripts/seed.js
- *        node src/scripts/seed.js --force  (production)
+ * Usage:
+ *   npm run seed
+ *   npm run seed:reset
  */
 require('dotenv').config();
 
-if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
-  console.error('[SEED] ❌  Refusing to seed in production without --force flag.');
-  process.exit(1);
-}
-
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-
 const User = require('../models/User.model');
 const RoomType = require('../models/RoomType.model');
 const Room = require('../models/Room.model');
 const Guest = require('../models/Guest.model');
 const Reservation = require('../models/Reservation.model');
 const Payment = require('../models/Payment.model');
+const { daysFromNow, formatDateCode, USERS_DATA, ROOM_TYPES_DATA, WALK_IN_GUESTS } = require('./seedDataGenerator');
 
-const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) { console.error('[SEED] MONGODB_URI not set'); process.exit(1); }
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/hotel_reservation_system';
 
-function daysFromNow(n) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  d.setHours(12, 0, 0, 0);
-  return d;
-}
-
-function code(n) {
-  const d = new Date();
-  const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  return `RES-${dateStr}-${String(n).padStart(4,'0')}`;
-}
-
-async function seed() {
-  await mongoose.connect(MONGODB_URI);
-  console.log('[SEED] Connected to MongoDB');
-
-  // ── Clear existing data ────────────────────────────────────────────────────
+async function seedAllData() {
+  // 1. Wipe collections cleanly
+  console.log('[SEED] Clearing collections...');
   await Promise.all([
     Payment.deleteMany({}),
     Reservation.deleteMany({}),
@@ -54,304 +37,362 @@ async function seed() {
     RoomType.deleteMany({}),
     User.deleteMany({}),
   ]);
-  console.log('[SEED] Cleared existing data');
 
-  // ── Users ─────────────────────────────────────────────────────────────────
-  const [admin, receptionist, customer] = await User.create([
-    { name: 'Admin User', email: 'admin@harbourrow.com', password: 'Admin@1234', role: 'admin', phone: '+91 98000 00001' },
-    { name: 'Priya Receptionist', email: 'priya@harbourrow.com', password: 'Staff@1234', role: 'receptionist', phone: '+91 98000 00002' },
-    { name: 'Rahul Customer', email: 'rahul@example.com', password: 'Guest@1234', role: 'customer', phone: '+91 98000 00003' },
-  ]);
-  console.log('[SEED] Created 3 users');
+  // 2. Users
+  console.log('[SEED] Seeding users...');
+  const users = await User.create(USERS_DATA);
+  const admin = users.find((u) => u.role === 'admin');
+  const receptionists = users.filter((u) => u.role === 'receptionist');
+  const customers = users.filter((u) => u.role === 'customer');
+  const rahul = customers.find((u) => u.email === 'rahul@example.com');
 
-  // ── Room Types ────────────────────────────────────────────────────────────
-  const [standard, deluxe, suite, presidential] = await RoomType.create([
-    {
-      name: 'Standard',
-      description: 'Comfortable standard room with city view, queen bed, and all essential amenities.',
-      baseRate: 2500,
-      capacity: 2,
-      amenities: ['Wi-Fi', 'Air Conditioning', 'TV', 'Tea/Coffee Maker'],
-    },
-    {
-      name: 'Deluxe',
-      description: 'Spacious deluxe room with garden view, king bed, and upgraded amenities.',
-      baseRate: 4500,
-      capacity: 3,
-      amenities: ['Wi-Fi', 'Air Conditioning', 'TV', 'Mini Bar', 'Bathtub', 'Tea/Coffee Maker'],
-    },
-    {
-      name: 'Suite',
-      description: 'Luxurious suite with separate living area, ocean view, and butler service.',
-      baseRate: 8500,
-      capacity: 4,
-      amenities: ['Wi-Fi', 'Air Conditioning', 'Smart TV', 'Mini Bar', 'Jacuzzi', 'Butler Service', 'Balcony'],
-    },
-    {
-      name: 'Presidential Suite',
-      description: 'The finest accommodation with panoramic views, full kitchen, and dedicated concierge.',
-      baseRate: 18000,
-      capacity: 6,
-      amenities: ['Wi-Fi', 'Air Conditioning', 'Smart TV', 'Full Kitchen', 'Private Pool', 'Butler Service', 'Concierge', 'Dining Room'],
-    },
-  ]);
-  console.log('[SEED] Created 4 room types');
+  // 3. Room Types
+  console.log('[SEED] Seeding 6 room types...');
+  const roomTypes = await RoomType.create(ROOM_TYPES_DATA);
+  const rtMap = {};
+  roomTypes.forEach((rt) => { rtMap[rt.name] = rt; });
 
-  // ── Rooms ─────────────────────────────────────────────────────────────────
-  const rooms = await Room.create([
-    // Floor 1 — Standard
-    { number: '101', floor: 1, roomType: standard._id, status: 'active' },
-    { number: '102', floor: 1, roomType: standard._id, status: 'active' },
-    { number: '103', floor: 1, roomType: standard._id, status: 'maintenance' },
-    { number: '104', floor: 1, roomType: standard._id, status: 'active' },
-    { number: '105', floor: 1, roomType: standard._id, status: 'active' },
-    // Floor 2 — Deluxe
-    { number: '201', floor: 2, roomType: deluxe._id, status: 'active' },
-    { number: '202', floor: 2, roomType: deluxe._id, status: 'active' },
-    { number: '203', floor: 2, roomType: deluxe._id, status: 'active' },
-    { number: '204', floor: 2, roomType: deluxe._id, status: 'maintenance' },
-    { number: '205', floor: 2, roomType: deluxe._id, status: 'active' },
-    // Floor 3 — Deluxe
-    { number: '301', floor: 3, roomType: deluxe._id, status: 'active' },
-    { number: '302', floor: 3, roomType: deluxe._id, status: 'active' },
-    // Floor 4 — Suite
-    { number: '401', floor: 4, roomType: suite._id, status: 'active' },
-    { number: '402', floor: 4, roomType: suite._id, status: 'active' },
-    { number: '403', floor: 4, roomType: suite._id, rateOverride: 9000, status: 'active' },
-    // Floor 5 — Suite
-    { number: '501', floor: 5, roomType: suite._id, status: 'active' },
-    // Floor 6 — Presidential
-    { number: '601', floor: 6, roomType: presidential._id, status: 'active' },
-    { number: '602', floor: 6, roomType: presidential._id, rateOverride: 20000, status: 'active' },
-    // Floor 7 — Presidential
-    { number: '701', floor: 7, roomType: presidential._id, status: 'active' },
-    { number: '702', floor: 7, roomType: presidential._id, status: 'active' },
-  ]);
-  console.log('[SEED] Created 20 rooms');
+  // 4. 40 Rooms across 4 floors
+  console.log('[SEED] Seeding 40 rooms across 4 floors...');
+  const roomsData = [];
+  const roomTypeKeys = Object.keys(rtMap);
 
-  // ── Guests ────────────────────────────────────────────────────────────────
-  const guests = await Guest.create([
-    { fullName: 'Rahul Customer', phone: '+91 98000 00003', email: 'rahul@example.com', user: customer._id },
-    { fullName: 'Anjali Sharma', phone: '+91 98111 11111', email: 'anjali@example.com', idProof: 'Aadhar: 1234-5678-9012' },
-    { fullName: 'Vikram Singh', phone: '+91 98222 22222', email: 'vikram@example.com', idProof: 'Passport: P12345678' },
-    { fullName: 'Meera Nair', phone: '+91 98333 33333', email: 'meera@example.com' },
-    { fullName: 'Rajan Pillai', phone: '+91 98444 44444', email: 'rajan@example.com', idProof: 'DL: MH01 20200012345' },
-    { fullName: 'Sunita Desai', phone: '+91 98555 55555', email: 'sunita@example.com' },
-    { fullName: 'Arun Kumar', phone: '+91 98666 66666', email: 'arun@example.com', idProof: 'Aadhar: 9876-5432-1098' },
-    { fullName: 'Leela Krishnan', phone: '+91 98777 77777', email: 'leela@example.com' },
-    { fullName: 'Farhan Akhtar', phone: '+91 98888 88888', email: 'farhan@example.com', idProof: 'Passport: P98765432' },
-    { fullName: 'Pooja Mehta', phone: '+91 98999 99999', email: 'pooja@example.com' },
-  ]);
-  console.log('[SEED] Created 10 guests');
+  for (let floor = 1; floor <= 4; floor++) {
+    for (let r = 1; r <= 10; r++) {
+      const roomNum = `${floor}${String(r).padStart(2, '0')}`;
+      let assignedType = rtMap['Standard'];
 
-  // ── Reservations ──────────────────────────────────────────────────────────
-  const reservations = await Reservation.create([
-    // Currently checked in
-    {
-      reservationCode: code(1), guest: guests[1]._id, room: rooms[0]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-3), checkOut: daysFromNow(2), adults: 2,
-      ratePerNight: 2500, nights: 5, totalAmount: 12500, status: 'checked_in',
-    },
-    {
-      reservationCode: code(2), guest: guests[2]._id, room: rooms[5]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-1), checkOut: daysFromNow(3), adults: 2,
-      ratePerNight: 4500, nights: 4, totalAmount: 18000, status: 'checked_in',
-    },
-    {
-      reservationCode: code(3), guest: guests[3]._id, room: rooms[12]._id, createdBy: admin._id,
-      checkIn: daysFromNow(-2), checkOut: daysFromNow(5), adults: 3,
-      ratePerNight: 8500, nights: 7, totalAmount: 59500, status: 'checked_in',
-    },
-    // Arriving today (confirmed)
-    {
-      reservationCode: code(4), guest: guests[4]._id, room: rooms[1]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(0), checkOut: daysFromNow(2), adults: 2,
-      ratePerNight: 2500, nights: 2, totalAmount: 5000, status: 'confirmed',
-    },
-    {
-      reservationCode: code(5), guest: guests[5]._id, room: rooms[6]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(0), checkOut: daysFromNow(3), adults: 2,
-      ratePerNight: 4500, nights: 3, totalAmount: 13500, status: 'confirmed',
-    },
-    // Upcoming (confirmed)
-    {
-      reservationCode: code(6), guest: guests[6]._id, room: rooms[7]._id, createdBy: admin._id,
-      checkIn: daysFromNow(2), checkOut: daysFromNow(5), adults: 2,
-      ratePerNight: 4500, nights: 3, totalAmount: 13500, status: 'confirmed',
-    },
-    {
-      reservationCode: code(7), guest: guests[7]._id, room: rooms[13]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(5), checkOut: daysFromNow(8), adults: 2,
-      ratePerNight: 8500, nights: 3, totalAmount: 25500, status: 'confirmed',
-    },
-    {
-      reservationCode: code(8), guest: guests[8]._id, room: rooms[16]._id, createdBy: admin._id,
-      checkIn: daysFromNow(7), checkOut: daysFromNow(10), adults: 4,
-      ratePerNight: 18000, nights: 3, totalAmount: 54000, status: 'confirmed',
-    },
-    // Pending (customer-created)
-    {
-      reservationCode: code(9), guest: guests[0]._id, room: rooms[3]._id, createdBy: customer._id,
-      checkIn: daysFromNow(10), checkOut: daysFromNow(13), adults: 2,
-      ratePerNight: 2500, nights: 3, totalAmount: 7500, status: 'pending',
-    },
-    {
-      reservationCode: code(10), guest: guests[9]._id, room: rooms[9]._id, createdBy: customer._id,
-      checkIn: daysFromNow(14), checkOut: daysFromNow(16), adults: 2,
-      ratePerNight: 4500, nights: 2, totalAmount: 9000, status: 'pending',
-    },
-    // Past — checked out
-    {
-      reservationCode: code(11), guest: guests[1]._id, room: rooms[10]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-15), checkOut: daysFromNow(-12), adults: 2,
-      ratePerNight: 4500, nights: 3, totalAmount: 13500, status: 'checked_out',
-    },
-    {
-      reservationCode: code(12), guest: guests[2]._id, room: rooms[4]._id, createdBy: admin._id,
-      checkIn: daysFromNow(-20), checkOut: daysFromNow(-17), adults: 2,
-      ratePerNight: 2500, nights: 3, totalAmount: 7500, status: 'checked_out',
-    },
-    {
-      reservationCode: code(13), guest: guests[3]._id, room: rooms[14]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-30), checkOut: daysFromNow(-25), adults: 3,
-      ratePerNight: 9000, nights: 5, totalAmount: 45000, status: 'checked_out',
-    },
-    // Cancelled
-    {
-      reservationCode: code(14), guest: guests[4]._id, room: rooms[15]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(20), checkOut: daysFromNow(23), adults: 2,
-      ratePerNight: 8500, nights: 3, totalAmount: 25500, status: 'cancelled',
-    },
-    {
-      reservationCode: code(15), guest: guests[5]._id, room: rooms[11]._id, createdBy: admin._id,
-      checkIn: daysFromNow(-10), checkOut: daysFromNow(-7), adults: 2,
-      ratePerNight: 4500, nights: 3, totalAmount: 13500, status: 'cancelled',
-    },
-    // No-show
-    {
-      reservationCode: code(16), guest: guests[6]._id, room: rooms[17]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-5), checkOut: daysFromNow(-2), adults: 4,
-      ratePerNight: 20000, nights: 3, totalAmount: 60000, status: 'no_show',
-    },
-    // More upcoming
-    {
-      reservationCode: code(17), guest: guests[7]._id, room: rooms[18]._id, createdBy: admin._id,
-      checkIn: daysFromNow(12), checkOut: daysFromNow(14), adults: 4,
-      ratePerNight: 18000, nights: 2, totalAmount: 36000, status: 'confirmed',
-    },
-    {
-      reservationCode: code(18), guest: guests[8]._id, room: rooms[8]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(3), checkOut: daysFromNow(6), adults: 2,
-      ratePerNight: 4500, nights: 3, totalAmount: 13500, status: 'confirmed',
-    },
-    {
-      reservationCode: code(19), guest: guests[9]._id, room: rooms[19]._id, createdBy: admin._id,
-      checkIn: daysFromNow(25), checkOut: daysFromNow(30), adults: 4,
-      ratePerNight: 18000, nights: 5, totalAmount: 90000, status: 'confirmed',
-    },
-    // More checked-out (for revenue reports)
-    {
-      reservationCode: code(20), guest: guests[0]._id, room: rooms[2]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-45), checkOut: daysFromNow(-42), adults: 2,
-      ratePerNight: 2500, nights: 3, totalAmount: 7500, status: 'checked_out',
-    },
-    {
-      reservationCode: code(21), guest: guests[1]._id, room: rooms[5]._id, createdBy: admin._id,
-      checkIn: daysFromNow(-60), checkOut: daysFromNow(-57), adults: 2,
-      ratePerNight: 4500, nights: 3, totalAmount: 13500, status: 'checked_out',
-    },
-    {
-      reservationCode: code(22), guest: guests[2]._id, room: rooms[12]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-90), checkOut: daysFromNow(-85), adults: 3,
-      ratePerNight: 8500, nights: 5, totalAmount: 42500, status: 'checked_out',
-    },
-    {
-      reservationCode: code(23), guest: guests[3]._id, room: rooms[16]._id, createdBy: admin._id,
-      checkIn: daysFromNow(-120), checkOut: daysFromNow(-117), adults: 4,
-      ratePerNight: 18000, nights: 3, totalAmount: 54000, status: 'checked_out',
-    },
-    {
-      reservationCode: code(24), guest: guests[4]._id, room: rooms[1]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-25), checkOut: daysFromNow(-23), adults: 1,
-      ratePerNight: 2500, nights: 2, totalAmount: 5000, status: 'checked_out',
-    },
-    {
-      reservationCode: code(25), guest: guests[5]._id, room: rooms[6]._id, createdBy: receptionist._id,
-      checkIn: daysFromNow(-35), checkOut: daysFromNow(-33), adults: 2,
-      ratePerNight: 4500, nights: 2, totalAmount: 9000, status: 'checked_out',
-    },
-  ]);
-  console.log(`[SEED] Created ${reservations.length} reservations`);
+      // Variety distribution per floor
+      if (r === 1 || r === 2) assignedType = rtMap['Standard'];
+      else if (r === 3 || r === 4) assignedType = rtMap['Deluxe King'];
+      else if (r === 5 || r === 6) assignedType = rtMap['Twin Deluxe'];
+      else if (r === 7 || r === 8) assignedType = rtMap['Accessible Queen'];
+      else if (r === 9) assignedType = rtMap['Executive Suite'];
+      else if (r === 10) assignedType = floor === 4 ? rtMap['Penthouse Suite'] : rtMap['Executive Suite'];
 
-  // ── Payments ───────────────────────────────────────────────────────────────
-  const payments = [];
+      // Rooms 103 and 308 in maintenance
+      const isMaintenance = (roomNum === '103' || roomNum === '308');
 
-  // Fully paid: checked-out reservations (indices 10-14, 19-24)
-  const checkedOutIndices = [10, 11, 12, 19, 20, 21, 22, 23, 24];
-  for (const i of checkedOutIndices) {
-    payments.push({
-      reservation: reservations[i]._id,
-      amount: reservations[i].totalAmount,
-      method: ['cash', 'card', 'upi'][i % 3],
-      status: 'paid',
-      receivedBy: receptionist._id,
-      paidAt: reservations[i].checkOut,
+      roomsData.push({
+        number: roomNum,
+        floor,
+        roomType: assignedType._id,
+        status: isMaintenance ? 'maintenance' : 'active',
+      });
+    }
+  }
+
+  const rooms = await Room.create(roomsData);
+  const activeRooms = rooms.filter((r) => r.status === 'active');
+
+  // 5. Guests (6 customer linked + 24 walk-ins = 30 guests)
+  console.log('[SEED] Seeding 30 guests...');
+  const guestsData = [];
+
+  // Customer linked guests
+  customers.forEach((c) => {
+    guestsData.push({
+      fullName: c.name,
+      phone: c.phone || '+91 98000 00000',
+      email: c.email,
+      user: c._id,
+      idProof: 'Aadhaar: Verified via Digilocker',
+    });
+  });
+
+  // Walk-in guests
+  WALK_IN_GUESTS.forEach((g) => {
+    guestsData.push(g);
+  });
+
+  const guests = await Guest.create(guestsData);
+  const rahulGuest = guests.find((g) => g.email === rahul.email);
+
+  // 6. Reservations Generation
+  console.log('[SEED] Generating ~90 non-overlapping reservations...');
+  const reservationsToCreate = [];
+  const paymentsToCreate = [];
+  let seq = 1;
+
+  // Helper to append a reservation + payment
+  const addReservation = ({
+    guestId,
+    roomId,
+    createdById,
+    checkInN,
+    checkOutN,
+    status,
+    notes = '',
+    paidStatus = 'full', // 'full', 'partial', 'none', 'refunded'
+    method = 'card',
+  }) => {
+    const ci = daysFromNow(checkInN);
+    const co = daysFromNow(checkOutN);
+    const nights = Math.max(1, Math.round((co - ci) / 86400000));
+    const targetRoom = rooms.find((r) => String(r._id) === String(roomId));
+    const targetRt = roomTypes.find((rt) => String(rt._id) === String(targetRoom.roomType));
+    const ratePerNight = targetRoom.rateOverride != null ? targetRoom.rateOverride : targetRt.baseRate;
+    const totalAmount = ratePerNight * nights;
+    const resCode = formatDateCode(ci, seq++);
+
+    const resDoc = {
+      _id: new mongoose.Types.ObjectId(),
+      reservationCode: resCode,
+      guest: guestId,
+      room: targetRoom._id,
+      createdBy: createdById,
+      checkIn: ci,
+      checkOut: co,
+      adults: Math.min(2, targetRt.capacity),
+      ratePerNight,
+      nights,
+      totalAmount,
+      status,
+      notes,
+      createdAt: daysFromNow(checkInN - 5),
+    };
+
+    reservationsToCreate.push(resDoc);
+
+    // Payments
+    if (paidStatus === 'full') {
+      paymentsToCreate.push({
+        reservation: resDoc._id,
+        amount: totalAmount,
+        method,
+        status: 'paid',
+        reference: `TXN-${resCode}-F`,
+        receivedBy: receptionists[0]._id,
+        paidAt: daysFromNow(checkInN),
+      });
+    } else if (paidStatus === 'partial') {
+      const deposit = Math.round(totalAmount * 0.5);
+      paymentsToCreate.push({
+        reservation: resDoc._id,
+        amount: deposit,
+        method,
+        status: 'paid',
+        reference: `DEP-${resCode}`,
+        receivedBy: receptionists[1]._id,
+        paidAt: daysFromNow(checkInN - 2),
+      });
+    } else if (paidStatus === 'refunded') {
+      paymentsToCreate.push({
+        reservation: resDoc._id,
+        amount: totalAmount,
+        method: 'card',
+        status: 'refunded',
+        reference: `REF-${resCode}`,
+        receivedBy: admin._id,
+        paidAt: daysFromNow(checkInN),
+      });
+    }
+  };
+
+  // ── A. Rahul Verma (Demo Customer) Rich Stays ──────────────────────────────
+  // 1 upcoming confirmed stay
+  const rahulRoom = activeRooms.find((r) => r.number === '204'); // Deluxe King
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulRoom._id,
+    createdById: rahul._id,
+    checkInN: 3,
+    checkOutN: 6,
+    status: 'confirmed',
+    notes: 'High floor preferred, quiet chamber for writing.',
+    paidStatus: 'partial',
+    method: 'upi',
+  });
+
+  // 2 past completed stays
+  const rahulPastRoom1 = activeRooms.find((r) => r.number === '101');
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulPastRoom1._id,
+    createdById: rahul._id,
+    checkInN: -42,
+    checkOutN: -39,
+    status: 'checked_out',
+    notes: 'Late arrival via coastal ferry.',
+    paidStatus: 'full',
+    method: 'card',
+  });
+
+  const rahulPastRoom2 = activeRooms.find((r) => r.number === '304');
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulPastRoom2._id,
+    createdById: rahul._id,
+    checkInN: -16,
+    checkOutN: -13,
+    status: 'checked_out',
+    notes: 'Extra feather pillows requested.',
+    paidStatus: 'full',
+    method: 'upi',
+  });
+
+  // 1 cancelled stay
+  const rahulCancelRoom = activeRooms.find((r) => r.number === '202');
+  addReservation({
+    guestId: rahulGuest._id,
+    roomId: rahulCancelRoom._id,
+    createdById: rahul._id,
+    checkInN: -6,
+    checkOutN: -4,
+    status: 'cancelled',
+    notes: 'Trip rescheduled due to Mumbai monsoon alerts.',
+    paidStatus: 'refunded',
+    method: 'card',
+  });
+
+  // ── B. 60 Past Stays (checked_out, paid in full) across all active rooms ───
+  let guestIdx = 1;
+  const methods = ['card', 'upi', 'cash'];
+
+  // Past slots: windows from -75 to -3 days
+  const pastWindows = [
+    [-75, -72], [-71, -68], [-66, -62], [-61, -58], [-57, -54],
+    [-52, -49], [-48, -45], [-44, -40], [-38, -35], [-34, -30],
+    [-29, -26], [-25, -21], [-20, -17], [-15, -12], [-11, -8],
+    [-7, -4], [-5, -2],
+  ];
+
+  for (let i = 0; i < 57; i++) {
+    const room = activeRooms[i % activeRooms.length];
+    const window = pastWindows[i % pastWindows.length];
+    const guest = guests[guestIdx % guests.length];
+    guestIdx++;
+
+    addReservation({
+      guestId: guest._id,
+      roomId: room._id,
+      createdById: receptionists[i % 2]._id,
+      checkInN: window[0] - (Math.floor(i / activeRooms.length) * 3),
+      checkOutN: window[1] - (Math.floor(i / activeRooms.length) * 3),
+      status: 'checked_out',
+      notes: i % 4 === 0 ? 'Harbour view commended by patron.' : '',
+      paidStatus: 'full',
+      method: methods[i % methods.length],
     });
   }
 
-  // Partially paid: checked-in reservations (indices 0-2)
-  payments.push({
-    reservation: reservations[0]._id,
-    amount: 5000,
-    method: 'card',
-    status: 'paid',
-    receivedBy: receptionist._id,
-    paidAt: reservations[0].checkIn,
-  });
-  payments.push({
-    reservation: reservations[1]._id,
-    amount: 10000,
-    method: 'upi',
-    status: 'paid',
-    receivedBy: receptionist._id,
-    paidAt: reservations[1].checkIn,
-  });
-  // Fully paid checked-in reservation 2
-  payments.push({
-    reservation: reservations[2]._id,
-    amount: 59500,
-    method: 'card',
-    status: 'paid',
-    receivedBy: admin._id,
-    paidAt: reservations[2].checkIn,
+  // ── C. 10 Current In-House Stays (checked_in) ─────────────────────────────
+  // Distinct rooms, checked in between -3 and -1, departing in +1 to +4 days
+  const currentRooms = activeRooms.slice(0, 10);
+  currentRooms.forEach((room, idx) => {
+    const checkInN = -(idx % 3 + 1); // -1, -2, -3
+    const checkOutN = (idx % 3 + 2); // +2, +3, +4
+    const guest = guests[(guestIdx++) % guests.length];
+    const hasPaidFull = idx < 6;
+
+    addReservation({
+      guestId: guest._id,
+      roomId: room._id,
+      createdById: receptionists[idx % 2]._id,
+      checkInN,
+      checkOutN,
+      status: 'checked_in',
+      notes: idx % 2 === 0 ? 'In-chamber fruit basket delivered.' : 'Early morning tea requested.',
+      paidStatus: hasPaidFull ? 'full' : 'partial',
+      method: methods[idx % methods.length],
+    });
   });
 
-  await Payment.create(payments);
-  console.log(`[SEED] Created ${payments.length} payments`);
+  // ── D. 12 Upcoming Stays (confirmed & pending) ───────────────────────────
+  // Non-overlapping with current stays: use rooms 11 to 22
+  const upcomingRooms = activeRooms.slice(10, 22);
+  upcomingRooms.forEach((room, idx) => {
+    const checkInN = (idx % 4 + 1); // +1, +2, +3, +4
+    const checkOutN = checkInN + (idx % 3 + 2); // 2 to 4 nights stay
+    const guest = guests[(guestIdx++) % guests.length];
+    const isConfirmed = idx < 7;
 
-  // ── Summary ───────────────────────────────────────────────────────────────
-  console.log('\n╔═══════════════════════════════════════════╗');
-  console.log('║         DEMO CREDENTIALS                 ║');
-  console.log('╠═══════════════════════════════════════════╣');
-  console.log('║  Admin:                                   ║');
-  console.log('║    Email:    admin@harbourrow.com         ║');
-  console.log('║    Password: Admin@1234                   ║');
-  console.log('╠═══════════════════════════════════════════╣');
-  console.log('║  Receptionist:                            ║');
-  console.log('║    Email:    priya@harbourrow.com         ║');
-  console.log('║    Password: Staff@1234                   ║');
-  console.log('╠═══════════════════════════════════════════╣');
-  console.log('║  Customer:                                ║');
-  console.log('║    Email:    rahul@example.com            ║');
-  console.log('║    Password: Guest@1234                   ║');
-  console.log('╚═══════════════════════════════════════════╝\n');
-  console.log('[SEED] ✅  Seed completed successfully');
+    addReservation({
+      guestId: guest._id,
+      roomId: room._id,
+      createdById: isConfirmed ? receptionists[idx % 2]._id : guest.user || admin._id,
+      checkInN,
+      checkOutN,
+      status: isConfirmed ? 'confirmed' : 'pending',
+      notes: isConfirmed ? 'Airport transfer arranged with valet.' : 'Awaiting deposit verification.',
+      paidStatus: isConfirmed ? (idx % 2 === 0 ? 'partial' : 'none') : 'none',
+      method: 'upi',
+    });
+  });
+
+  // ── E. 4 Additional Cancelled Stays (frees room dates) ─────────────────────
+  const cancelRooms = activeRooms.slice(22, 26);
+  cancelRooms.forEach((room, idx) => {
+    const guest = guests[(guestIdx++) % guests.length];
+    addReservation({
+      guestId: guest._id,
+      roomId: room._id,
+      createdById: receptionists[0]._id,
+      checkInN: idx + 2,
+      checkOutN: idx + 5,
+      status: 'cancelled',
+      notes: 'Patron cancelled due to change in sailing plans.',
+      paidStatus: idx % 2 === 0 ? 'refunded' : 'none',
+      method: 'card',
+    });
+  });
+
+  // ── F. 3 No-Show Stays ────────────────────────────────────────────────────
+  const noShowRooms = activeRooms.slice(26, 29);
+  noShowRooms.forEach((room, idx) => {
+    const guest = guests[(guestIdx++) % guests.length];
+    addReservation({
+      guestId: guest._id,
+      roomId: room._id,
+      createdById: receptionists[1]._id,
+      checkInN: -(idx + 4),
+      checkOutN: -(idx + 1),
+      status: 'no_show',
+      notes: 'Patron failed to report by midnight. Chamber released per policy.',
+      paidStatus: 'none',
+      method: 'card',
+    });
+  });
+
+  // 7. Insert all generated reservations and payments
+  console.log(`[SEED] Inserting ${reservationsToCreate.length} reservations...`);
+  await Reservation.create(reservationsToCreate);
+
+  console.log(`[SEED] Inserting ${paymentsToCreate.length} payments...`);
+  await Payment.create(paymentsToCreate);
+
+  console.log('─────────────────────────────────────────────────────────────────');
+  console.log('[SEED] ✅ Seeding complete!');
+  console.log(`  Users:        ${users.length} (1 Admin, 2 Receptionists, 6 Customers)`);
+  console.log(`  Room Types:   ${roomTypes.length}`);
+  console.log(`  Rooms:        ${rooms.length} (38 active, 2 under maintenance)`);
+  console.log(`  Guests:       ${guests.length}`);
+  console.log(`  Reservations: ${reservationsToCreate.length}`);
+  console.log(`  Payments:     ${paymentsToCreate.length}`);
+  console.log('─────────────────────────────────────────────────────────────────');
+  console.log('Demo Credentials:');
+  console.log('  Admin:        admin@harbourrow.com   / Admin@1234');
+  console.log('  Staff:        priya@harbourrow.com   / Staff@1234');
+  console.log('  Customer:     rahul@example.com      / Guest@1234');
+  console.log('─────────────────────────────────────────────────────────────────');
+  return { users, roomTypes, rooms, guests, reservationsToCreate, paymentsToCreate };
+}
+
+async function runSeed() {
+  console.log('[SEED] Connecting to MongoDB...');
+  await mongoose.connect(MONGODB_URI);
+  console.log('[SEED] Connected successfully.');
+
+  await seedAllData();
 
   await mongoose.disconnect();
 }
 
-seed().catch((err) => {
-  console.error('[SEED] ❌  Error:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  runSeed().catch((err) => {
+    console.error('[SEED] ❌ Error seeding database:', err);
+    process.exit(1);
+  });
+}
 
+module.exports = { runSeed, seedAllData };

@@ -5,6 +5,19 @@ const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error('MONGODB_URI is not set in environment variables');
 
+  // Local In-Memory Demo Mode (allows running locally without external MongoDB server)
+  if (uri === 'memory') {
+    console.log('[DB] Running in local IN-MEMORY demo mode');
+    const { setupDB, store } = require('../../tests/helpers');
+    await setupDB();
+
+    // Auto-seed if empty
+    if (store.users.length === 0) {
+      await seedInMemory();
+    }
+    return;
+  }
+
   let attempt = 0;
   const maxAttempts = 5;
   const baseDelay = 1000;
@@ -27,5 +40,10 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB;
+async function seedInMemory() {
+  const { seedAllData } = require('../scripts/seed');
+  await seedAllData();
+  console.log('[DB] In-memory demo data seeded with rich realistic dataset');
+}
 
+module.exports = connectDB;
