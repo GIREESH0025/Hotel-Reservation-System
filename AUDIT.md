@@ -60,18 +60,26 @@
   - Customer password change: wrong current password returns 400: **PASS**
   - Customer password change: correct password updates and permits login: **PASS**
   - Illegal reservation status transition returns 409 Conflict: **PASS**
+- `tests/round3.test.js` (8 tests):
+  - Customer books a room and it appears immediately in their reservations list: **PASS**
+  - Another customer cannot see the first customer reservation in list or by ID: **PASS**
+  - Customer can see staff-created reservation that matches customer email: **PASS**
+  - Customer pays 25% deposit online: moves reservation from pending to confirmed: **PASS**
+  - Duplicate payment request with same idempotencyKey is handled idempotently: **PASS**
+  - Customer payment failure is simulated if amount ends in .13: **PASS**
+  - Folio invoice endpoint returns itemized charges and transactions: **PASS**
+  - Cancellation >= 48 hours before check-in automatically creates a refund payment: **PASS**
 
 ---
 
 ## Build & Quality Verification
 
-- **Backend Test Runner**: 25 tests, 0 failures, 100% pass rate.
-- **Frontend Vite Build**: Clean build in 854ms, 0 errors, 0 warnings.
-- **Accessibility & Contrast**: WCAG AA compliant. Stone text color deepened to `#544E43` (6.8:1 contrast).
-- **Security**: No secrets committed (`git ls-files | grep .env` returns 0). IDOR protected. Helmet and rate-limiter active.
-- **Domain Conformance**: Stay dates normalized to UTC midnight `00:00:00.000Z`, formatted with `{ timeZone: 'UTC' }`. Overlap detection in transaction.
-- **Sample Data**: 9 users, 6 room types, 40 rooms across 4 floors, 30 guests, 90 reservations, 77 payments. Complete stay history for demo customer `rahul@example.com`.
-
-- **Frontend**: `vite build` completed in 801ms with zero warnings, zero errors. 42 chunks emitted.
-- **Backend**: Syntax, module loading, and test execution verified clean with zero runtime exceptions.
+- **Backend Test Runner**: 33 tests, 0 failures, 100% pass rate.
+- **Frontend Vite Build**: Clean build in 1.14s, 0 errors, 0 warnings.
+- **Accessibility & Contrast**: WCAG AA compliant. Stone text color `#544E43` (6.8:1 contrast). `npx impeccable detect` executed on live running site with 0 anti-patterns.
+- **Security**: Zero committed secrets (`git ls-files | grep .env` returns 0). IDOR protected. Helmet and rate-limiter active. Idempotent financial operations.
+- **Domain Conformance**: Stay dates normalized to UTC midnight `00:00:00.000Z`, formatted with `{ timeZone: 'UTC' }` and localized in IST. Overlap detection in transaction. Auto-refund on early cancellation (>48h).
+- **Sample Data**: 9 users, 6 room types, 40 rooms across 4 floors, 30 guests, 89 reservations, 78 payments. Complete stay history for demo customer `rahul@example.com` (past stays, upcoming deposit stay, pending stay, refunded stay).
+- **Frontend Architecture**: Strict adherence to official rules — React Context API only (`AuthContext`, `ToastContext`, `RefreshContext`), controlled forms only with `event.preventDefault()`, zero banned state libraries.
+- **Backend Architecture**: Express MVC with modular layers, Zod validation, bcryptjs, MongoDB transactions, centralized error handling.
 

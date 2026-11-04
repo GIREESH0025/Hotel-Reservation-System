@@ -358,6 +358,25 @@
             "method": "PATCH",
             "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/cancel", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "cancel"] }
           }
+        },
+        {
+          "name": "Customer Pay Online (Deposit / Balance / Full)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountType\": \"deposit\",\n  \"method\": \"demo_online\",\n  \"idempotencyKey\": \"demo-key-12345\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/pay", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "pay"] }
+          }
+        },
+        {
+          "name": "Get Folio Tax Invoice",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/invoice", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "invoice"] }
+          }
         }
       ]
     },

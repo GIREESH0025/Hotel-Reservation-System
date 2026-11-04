@@ -68,10 +68,13 @@ erDiagram
         ObjectId _id PK
         ObjectId reservation FK
         number amount
-        string method "cash|card|upi"
-        string status "paid|refunded"
-        string reference "optional"
-        ObjectId receivedBy FK
+        string method "cash|card|upi|demo_online"
+        string type "deposit|balance|full|refund"
+        string status "paid|refunded|failed"
+        string reference "unique UK"
+        string idempotencyKey "unique UK optional"
+        string note "optional"
+        ObjectId receivedBy FK "optional"
         Date paidAt
         Date createdAt
         Date updatedAt

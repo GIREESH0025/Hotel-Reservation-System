@@ -26,11 +26,13 @@ A production-grade hotel reservation system with role-based access (Admin, Recep
 
 ### Customer
 - Search room availability by check-in, check-out, adults
-- Book a room (auto-creates pending reservation)
-- View own reservations and folio (line items + balance)
-- Cancel own pending/confirmed reservations
-- View own payments
-- Edit own profile
+- Book a room with instant 25% advance deposit, full prepayment, or pay at hotel
+- View own reservations across tabbed views (Upcoming, Past, Cancelled)
+- View and print itemized folio tax invoice (`/my/bookings/:id`)
+- Pay outstanding balance online anytime via demo payment gateway
+- View personal payment transaction ledger (`/my/payments`)
+- Cancel own pending/confirmed reservations with automatic refund policy (>48h prior)
+- Edit personal profile and securely update password
 
 ---
 
@@ -176,9 +178,10 @@ npm run dev        # starts on http://localhost:5173
 ```bash
 npm run dev         # Development with nodemon
 npm start           # Production start
-npm test            # Run automated test suite (25/25 passing)
+npm test            # Run automated test suite (33/33 passing)
 npm run seed        # Seed database with rich sample data (90 reservations)
 npm run seed:reset  # Idempotently reset and recreate sample data
+npm run fix:link-bookings # Idempotent guest-customer link repair (--apply to persist)
 ```
 
 ### Frontend
@@ -223,32 +226,22 @@ npm run preview  # Preview production build locally
 | DELETE | /guests/:id | Delete guest | Admin |
 | GET | /reservations | List reservations (paginated, filters) | All (Customer: own only) |
 | GET | /reservations/:id | Reservation detail + computed folio balance | All (Customer: own only) |
+| GET | /reservations/:id/invoice | Printable tax folio invoice (itemized charges & balance) | All (Customer: own only) |
 | POST | /reservations | Create reservation (overlap guarded in tx) | All |
+| POST | /reservations/:id/pay | Online booking payment (deposit, balance, full) | All (Customer: own only) |
 | PATCH | /reservations/:id | Modify reservation chamber / dates | Admin, Receptionist |
 | PATCH | /reservations/:id/confirm | Confirm pending reservation | Admin, Receptionist |
 | PATCH | /reservations/:id/check-in | Check guest in | Admin, Receptionist |
 | PATCH | /reservations/:id/check-out | Check guest out (blocked if balance > 0) | Admin, Receptionist |
-| PATCH | /reservations/:id/cancel | Cancel reservation (releases dates) | All (Customer: own pending/confirmed) |
+| PATCH | /reservations/:id/cancel | Cancel reservation (releases dates, auto-refunds if >48h) | All (Customer: own pending/confirmed) |
 | DELETE | /reservations/:id | Delete reservation record | Admin |
 | GET | /payments | List payments (paginated, filters) | Admin, Receptionist, Customer (own) |
 | GET | /payments/:id | Payment receipt detail | Admin, Receptionist, Customer (own) |
-| POST | /payments | Record guest payment (card, upi, cash) | Admin, Receptionist |
-| PATCH | /payments/:id/refund | Refund payment | Admin |
+| POST | /payments | Record guest payment (card, upi, cash, demo_online) | Admin, Receptionist |
+| POST / PATCH | /payments/:id/refund | Refund payment (admin audited) | Admin |
 | GET | /reports/summary | Today operational register summary | Admin, Receptionist |
 | GET | /reports/revenue | Revenue ledger by period | Admin |
 | GET | /reports/occupancy | Occupancy percentages by chamber type | Admin |
-| PATCH | /reservations/:id | Update reservation | Admin, Receptionist |
-| PATCH | /reservations/:id/confirm | Confirm | Admin, Receptionist |
-| PATCH | /reservations/:id/check-in | Check in | Admin, Receptionist |
-| PATCH | /reservations/:id/check-out | Check out | Admin, Receptionist |
-| PATCH | /reservations/:id/cancel | Cancel | All (Customer: own pending/confirmed) |
-| DELETE | /reservations/:id | Delete | Admin |
-| GET | /payments | List payments | All (Customer: own) |
-| POST | /payments | Record payment | Admin, Receptionist |
-| PATCH | /payments/:id/refund | Refund | Admin |
-| GET | /reports/summary | Today's stats | Admin, Receptionist |
-| GET | /reports/revenue | Revenue by date range | Admin |
-| GET | /reports/occupancy | Occupancy by room type | Admin |
 | GET | /health | Health check | Public |
 
 **List endpoints** support: `page`, `limit`, `sort`, `search`, and resource-specific filters.  

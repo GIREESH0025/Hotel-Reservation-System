@@ -441,8 +441,8 @@
 - [x] Full regression testing across logged-out, Customer, Receptionist, Admin — verified 100% passing across all 4 roles
 
 ### Phase F: Design Review & Release
-- [ ] Impeccable accessibility and token audit
-- [ ] Update all documentation (BUGS.md, CHECKLIST.md, README.md, DEPLOY.md, AUDIT.md, ER diagram, Postman)
+- [x] Impeccable accessibility and token audit — verified: `npx impeccable detect http://localhost:5173` passed with 0 errors
+- [x] Update all documentation (BUGS.md, CHECKLIST.md, README.md, DEPLOY.md, AUDIT.md, ER diagram, Postman) — verified complete across all files
 
 ---
 

@@ -106,18 +106,6 @@ export default function AvailabilityPage() {
           {/* Left Column: Heading, Subtitle & Bottom-docked Booking Slip */}
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-              <span style={{
-                display: 'inline-block',
-                fontSize: '0.75rem',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--color-laterite)',
-                fontWeight: 600,
-                marginBottom: '8px',
-              }}>
-                {HOTEL_CONFIG.name} &bull; {HOTEL_CONFIG.area}
-              </span>
-
               <h1 style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
@@ -126,7 +114,7 @@ export default function AvailabilityPage() {
                 margin: '0 0 16px 0',
                 letterSpacing: '-0.02em',
               }}>
-                Stay at Harbour Row.
+                Stay at Harbour Row, Colaba.
               </h1>
 
               <p style={{
@@ -426,10 +414,7 @@ export default function AvailabilityPage() {
       {/* ── Room Types Visual Catalog ── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ borderBottom: '2px solid var(--color-ink)', paddingBottom: '12px', marginBottom: '24px' }}>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-stone)', fontWeight: 600 }}>
-            Accommodations
-          </span>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginTop: '2px' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', margin: 0 }}>
             Our Rooms &amp; Suites
           </h2>
           <p style={{ color: 'var(--color-stone)', fontSize: '0.9375rem', marginTop: '4px', maxWidth: '700px' }}>
@@ -518,10 +503,7 @@ export default function AvailabilityPage() {
       {/* ── Hotel Amenities & Services ── */}
       <section style={{ marginBottom: '64px', borderTop: '1px solid var(--color-rule)', paddingTop: '40px' }}>
         <div style={{ borderBottom: '1px solid var(--color-rule)', paddingBottom: '12px', marginBottom: '24px' }}>
-          <span style={{ fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-stone)', fontWeight: 600 }}>
-            Property Offerings
-          </span>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginTop: '2px' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', margin: 0 }}>
             Services &amp; Amenities
           </h2>
         </div>
@@ -564,10 +546,7 @@ export default function AvailabilityPage() {
         {/* Policies */}
         <div>
           <div style={{ borderBottom: '1px solid var(--color-ink)', paddingBottom: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-stone)', fontWeight: 600 }}>
-              Official Standards
-            </span>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: '2px 0 0 0' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: 0 }}>
               House Policies
             </h2>
           </div>
@@ -589,10 +568,7 @@ export default function AvailabilityPage() {
         {/* FAQs Accordion */}
         <div>
           <div style={{ borderBottom: '1px solid var(--color-ink)', paddingBottom: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-stone)', fontWeight: 600 }}>
-              Information
-            </span>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: '2px 0 0 0' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: 0 }}>
               Frequently Asked Questions
             </h2>
           </div>
