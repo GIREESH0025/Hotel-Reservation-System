@@ -67,4 +67,13 @@ export const HOTEL_CONFIG = {
       a: 'No. Harbour Row Hotel is a fully functional demonstration project built to showcase production-grade hotel booking and management software. No real payments are processed.',
     },
   ],
+  // Curated room photographs representing each distinct room category
+  roomImages: {
+    'Standard': 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=700&q=80',
+    'Deluxe King': 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=700&q=80',
+    'Twin Deluxe': 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=700&q=80',
+    'Executive Suite': 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=700&q=80',
+    'Penthouse Suite': 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=700&q=80',
+    'Accessible Queen': 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=700&q=80',
+  },
 }

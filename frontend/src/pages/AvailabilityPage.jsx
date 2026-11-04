@@ -88,10 +88,16 @@ export default function AvailabilityPage() {
     )
   }
 
+  const getRoomPhoto = (rt) => {
+    if (!rt) return HOTEL_CONFIG.roomImages?.['Deluxe King']
+    return rt.image || HOTEL_CONFIG.roomImages?.[rt.name] || HOTEL_CONFIG.roomImages?.['Standard']
+  }
+
   const nights = computeNights(checkIn, checkOut)
-  const heroImageSrc = allRoomTypes[0]?.image || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80'
-  const heroRoomName = allRoomTypes[0]?.name || 'Deluxe Room'
-  const heroRoomRate = allRoomTypes[0]?.baseRate || 2500
+  const heroRoomType = allRoomTypes.find((r) => r.name === 'Deluxe King') || allRoomTypes[0]
+  const heroImageSrc = heroRoomType ? getRoomPhoto(heroRoomType) : HOTEL_CONFIG.roomImages?.['Deluxe King']
+  const heroRoomName = heroRoomType?.name || 'Deluxe King'
+  const heroRoomRate = heroRoomType?.baseRate || 4800
 
   return (
     <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '32px var(--content-pad)' }}>
@@ -295,7 +301,7 @@ export default function AvailabilityPage() {
               {results.map((item) => {
                 const rt = item.roomType
                 const totalStayAmount = item.rate * nights
-                const photo = rt.image || heroImageSrc
+                const photo = getRoomPhoto(rt)
 
                 return (
                   <div
@@ -428,7 +434,7 @@ export default function AvailabilityPage() {
           gap: '24px',
         }}>
           {allRoomTypes.map((rt) => {
-            const photo = rt.image || heroImageSrc
+            const photo = getRoomPhoto(rt)
             return (
               <div
                 key={rt._id}

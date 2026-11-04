@@ -41,6 +41,7 @@ const ROOM_TYPES_DATA = [
     baseRate: 2800,
     capacity: 2,
     amenities: ['Wi-Fi', 'Air Conditioning', 'En-suite Shower', 'Tea/Coffee Maker', 'In-room Safe'],
+    image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=700&q=80',
   },
   {
     name: 'Deluxe King',
@@ -48,6 +49,7 @@ const ROOM_TYPES_DATA = [
     baseRate: 4800,
     capacity: 3,
     amenities: ['Wi-Fi', 'Air Conditioning', 'King Bed', 'City View Balcony', 'Mini Bar', 'Bathtub'],
+    image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=700&q=80',
   },
   {
     name: 'Twin Deluxe',
@@ -55,6 +57,7 @@ const ROOM_TYPES_DATA = [
     baseRate: 4500,
     capacity: 2,
     amenities: ['Wi-Fi', 'Air Conditioning', 'Twin Beds', 'Work Desk', 'Mini Bar', 'Walk-in Closet'],
+    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=700&q=80',
   },
   {
     name: 'Executive Suite',
@@ -62,6 +65,7 @@ const ROOM_TYPES_DATA = [
     baseRate: 8500,
     capacity: 4,
     amenities: ['Wi-Fi', 'Air Conditioning', 'Ocean View', 'Living Salon', 'Smart TV', 'Jacuzzi', 'Butler Service'],
+    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=700&q=80',
   },
   {
     name: 'Penthouse Suite',
@@ -69,6 +73,7 @@ const ROOM_TYPES_DATA = [
     baseRate: 18000,
     capacity: 6,
     amenities: ['Wi-Fi', 'Air Conditioning', 'Panoramic Terrace', 'Private Plunge Pool', 'Full Kitchen', 'Dedicated Valet', 'Dining Hall'],
+    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=700&q=80',
   },
   {
     name: 'Accessible Queen',
@@ -76,6 +81,7 @@ const ROOM_TYPES_DATA = [
     baseRate: 3600,
     capacity: 2,
     amenities: ['Wi-Fi', 'Air Conditioning', 'Step-Free Access', 'Roll-in Shower', 'Grab Bars', 'Wide Clearance'],
+    image: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=700&q=80',
   },
 ];
 

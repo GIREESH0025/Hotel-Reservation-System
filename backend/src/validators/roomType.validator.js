@@ -7,6 +7,7 @@ const roomTypeSchema = z.object({
   baseRate: z.number({ required_error: 'Base rate is required' }).min(0, 'Base rate cannot be negative'),
   capacity: z.number({ required_error: 'Capacity is required' }).int().min(1).max(10),
   amenities: z.array(z.string().trim()).default([]),
+  image: z.string().url('Image must be a valid URL').trim().optional(),
 });
 
 const updateRoomTypeSchema = roomTypeSchema.partial();

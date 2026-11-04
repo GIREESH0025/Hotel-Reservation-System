@@ -30,6 +30,10 @@ const roomTypeSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    image: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
