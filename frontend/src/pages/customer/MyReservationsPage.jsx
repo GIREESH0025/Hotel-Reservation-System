@@ -104,14 +104,24 @@ export default function MyReservationsPage() {
     {
       key: 'room',
       header: 'Chamber & Type',
-      render: (row) => (
-        <div>
-          <span style={{ fontWeight: 500, display: 'block' }}>{row.room?.roomType?.name || 'Chamber'}</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-stone)' }}>
-            Room {row.room?.number || '—'} (Floor {row.room?.floor || '1'})
-          </span>
-        </div>
-      ),
+      render: (row) => {
+        const roomNumbers = Array.isArray(row.rooms) && row.rooms.length > 0
+          ? row.rooms.map((r) => r.number || r).join(', ')
+          : (row.room?.number || '—')
+        const typeName =
+          row.roomType?.name ||
+          row.room?.roomType?.name ||
+          (row.rooms?.[0]?.roomType?.name) ||
+          'Chamber'
+        return (
+          <div>
+            <span style={{ fontWeight: 600, display: 'block' }}>{typeName}</span>
+            <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+              Room {roomNumbers} {Array.isArray(row.rooms) && row.rooms.length > 1 ? `(${row.rooms.length} rooms)` : ''}
+            </span>
+          </div>
+        )
+      },
     },
     {
       key: 'checkIn',

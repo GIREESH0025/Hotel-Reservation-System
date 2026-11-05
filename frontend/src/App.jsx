@@ -21,6 +21,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage'))
 
 // Customer
+const BookingSuccessPage = lazy(() => import('./pages/customer/BookingSuccessPage'))
 const MyReservationsPage = lazy(() => import('./pages/customer/MyReservationsPage'))
 const MyReservationDetailPage = lazy(() => import('./pages/customer/MyReservationDetailPage'))
 const MyPaymentsPage = lazy(() => import('./pages/customer/MyPaymentsPage'))
@@ -72,6 +73,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
                     <PublicLayout><BookPage /></PublicLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/booking/:id/success"
+                element={
+                  <ProtectedRoute allowedRoles={['customer']}>
+                    <PublicLayout><BookingSuccessPage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />

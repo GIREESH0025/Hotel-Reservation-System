@@ -498,8 +498,8 @@
 - [x] Step 3 Pay with full/deposit/hotel options, demo UPI/Card/Netbanking, idempotency, atomic create — verified: atomic reservation create and payment execution tested
 
 ### Phase 7: Success Page & Customer Area
-- [ ] `/booking/:id/success` with .ics calendar download, tax invoice button
-- [ ] Restyled My Bookings (`/my/bookings`), detail folio, payments, profile
+- [x] `/booking/:id/success` with .ics calendar download, tax invoice button — verified: created `BookingSuccessPage.jsx` with dynamic RFC-5545 .ics generation
+- [x] Restyled My Bookings (`/my/bookings`), detail folio, payments, profile — verified: multi-room allotment and tax invoice print verified in Vite build
 
 ### Phase 8: Staff & Admin Integration
 - [ ] Multi-room tape chart (one bar per room in `rooms[]`)

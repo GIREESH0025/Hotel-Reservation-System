@@ -234,10 +234,14 @@ export default function MyReservationDetailPage() {
               Chamber Allotment
             </span>
             <p style={{ fontSize: '1.0625rem', fontWeight: 600, marginTop: '4px', margin: 0 }}>
-              {reservation.room?.roomType?.name || 'Chamber'}
+              {reservation.roomType?.name || reservation.room?.roomType?.name || (reservation.rooms?.[0]?.roomType?.name) || 'Chamber'}
             </p>
             <p style={{ fontSize: '0.875rem', color: 'var(--color-stone)', margin: '4px 0 0 0' }}>
-              Chamber Number: <strong>{reservation.room?.number || '—'}</strong> (Floor {reservation.room?.floor || '1'})
+              Chamber Number(s): <strong>
+                {Array.isArray(reservation.rooms) && reservation.rooms.length > 0
+                  ? reservation.rooms.map((r) => r.number || r).join(', ')
+                  : (reservation.room?.number || '—')}
+              </strong>
             </p>
             <p style={{ fontSize: '0.875rem', color: 'var(--color-stone)', margin: '2px 0 0 0' }}>
               Base Rate: {formatINR(reservation.ratePerNight)} / night
