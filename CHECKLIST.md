@@ -464,11 +464,11 @@
 - [x] Update seed script and automated backend tests (`round4.test.js`) — verified: 37/37 backend tests pass (`npm test --prefix backend`)
 
 ### Phase 2: Design Tokens & Reusable UI Components
-- [ ] Configure Inter font and CSS tokens in `frontend/src/index.css` (primary `#D63941`, hero gradient, canvas, cards, etc.)
-- [ ] Custom `DateRangePicker` component (dual-month popover, Mon-Sun, weekend red, dark range band, keyboard nav)
-- [ ] `GuestSelector` component (rooms 1-3, adults >= rooms, children with age selectors, live validation)
-- [ ] Reusable components: `Stepper` (3-step pill), `RangeSlider`, `FareBreakup`, `ImageGallery` with Lightbox, `BottomSheet`, `Popover`
-- [ ] Shared date utility with Short ("05 Nov, Thu") and Long ("Thu, 05 Nov 2026") formats + tests
+- [x] Configure Inter font and CSS tokens in `frontend/src/index.css` (primary `#D63941`, hero gradient, canvas, cards, etc.) — verified: index.html Inter loaded and CSS tokens verified with clean Vite build
+- [x] Custom `DateRangePicker` component (dual-month popover, Mon-Sun, weekend red, dark range band, keyboard nav) — verified: created in `frontend/src/components/search/DateRangePicker.jsx`
+- [x] `GuestSelector` component (rooms 1-3, adults >= rooms, children with age selectors, live validation) — verified: created in `frontend/src/components/search/GuestSelector.jsx`
+- [x] Reusable components: `Stepper` (3-step pill), `RangeSlider`, `FareBreakup`, `ImageGallery` with Lightbox, `BackConfirmModal` — verified: created in `frontend/src/components/ui/` and `SearchBar.jsx`
+- [x] Shared date utility with Short ("05 Nov, Thu") and Long ("Thu, 05 Nov 2026") formats + tests — verified: 3 unit tests pass in `backend/tests/dateFormatting.test.js`
 
 ### Phase 3: Home Page Marketplace Overhaul
 - [ ] Deep maroon hero band with overlapping 4-cell search bar

@@ -17,6 +17,55 @@ export function formatName(name) {
 }
 
 /**
+ * Formats date into Travel Marketplace Short format: e.g. "05 Nov, Thu"
+ * Matches the reference search bar check-in / check-out display.
+ */
+export function formatShortDate(date) {
+  if (!date) return '—'
+  const d = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date.trim())
+    ? new Date(date + 'T00:00:00Z')
+    : new Date(date)
+  if (isNaN(d.getTime())) return '—'
+  const tz = { timeZone: 'UTC' }
+  const day = new Intl.DateTimeFormat('en-IN', { day: '2-digit', ...tz }).format(d)
+  const month = new Intl.DateTimeFormat('en-IN', { month: 'short', ...tz }).format(d)
+  const weekday = new Intl.DateTimeFormat('en-IN', { weekday: 'short', ...tz }).format(d)
+  return `${day} ${month}, ${weekday}`
+}
+
+/**
+ * Formats date into Travel Marketplace Long format: e.g. "Thu, 05 Nov 2026"
+ * Matches the reference checkout summary display.
+ */
+export function formatLongDate(date) {
+  if (!date) return '—'
+  const d = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date.trim())
+    ? new Date(date + 'T00:00:00Z')
+    : new Date(date)
+  if (isNaN(d.getTime())) return '—'
+  const tz = { timeZone: 'UTC' }
+  const weekday = new Intl.DateTimeFormat('en-IN', { weekday: 'short', ...tz }).format(d)
+  const day = new Intl.DateTimeFormat('en-IN', { day: '2-digit', ...tz }).format(d)
+  const month = new Intl.DateTimeFormat('en-IN', { month: 'short', ...tz }).format(d)
+  const year = new Intl.DateTimeFormat('en-IN', { year: 'numeric', ...tz }).format(d)
+  return `${weekday}, ${day} ${month} ${year}`
+}
+
+/**
+ * Converts Date or string to YYYY-MM-DD
+ */
+export function formatISODate(date) {
+  if (!date) return ''
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date.trim())) return date.trim()
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
+  const year = d.getUTCFullYear()
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
  * Formats date into editorial style: e.g. "Tue 4 Nov 2026"
  */
 export function formatDateEditorial(date) {
