@@ -12,6 +12,7 @@ import { Skeleton } from './components/ui/Skeleton'
 
 const AvailabilityPage = lazy(() => import('./pages/AvailabilityPage'))
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'))
+const RoomTypeDetailPage = lazy(() => import('./pages/RoomTypeDetailPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const BookPage = lazy(() => import('./pages/BookPage'))
@@ -61,6 +62,7 @@ export default function App() {
               {/* Public routes */}
               <Route path="/" element={<PublicLayout><AvailabilityPage /></PublicLayout>} />
               <Route path="/search" element={<PublicLayout><SearchResultsPage /></PublicLayout>} />
+              <Route path="/rooms/:id" element={<PublicLayout><RoomTypeDetailPage /></PublicLayout>} />
               <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
               <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
               <Route

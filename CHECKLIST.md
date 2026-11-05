@@ -484,10 +484,10 @@
 - [x] RoomCard with real "Only N left" when <= 3, price/night and stay total, Select room button — verified: real inventory indicator and Select Room button implemented
 
 ### Phase 5: Room Type Detail Page (`/rooms/:id`)
-- [ ] 5-photo grid + Lightbox
-- [ ] Sticky tab bar with scroll-spy (Overview, Rooms, Facilities, Policies, Location)
-- [ ] Rate plan cards (Room only vs With breakfast)
-- [ ] Sticky price summary card on desktop / sticky bottom bar on mobile with live quote
+- [x] 5-photo grid + Lightbox — verified: ImageGallery component with modal lightbox mounted
+- [x] Sticky tab bar with scroll-spy (Overview, Rooms, Facilities, Policies, Location) — verified: sticky tab header with section jump and active indicator
+- [x] Rate plan cards (Room only vs With breakfast) — verified: interactive rate plan selectors with live quote integration
+- [x] Sticky price summary card on desktop / sticky bottom bar on mobile with live quote — verified: sticky FareBreakup sidebar computes live quote from backend /quote endpoint
 
 ### Phase 6: 3-Step Checkout Wizard (`/book`)
 - [ ] `BookingContext` with `sessionStorage` persistence
