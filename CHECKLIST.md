@@ -471,10 +471,10 @@
 - [x] Shared date utility with Short ("05 Nov, Thu") and Long ("Thu, 05 Nov 2026") formats + tests — verified: 3 unit tests pass in `backend/tests/dateFormatting.test.js`
 
 ### Phase 3: Home Page Marketplace Overhaul
-- [ ] Deep maroon hero band with overlapping 4-cell search bar
-- [ ] Offers strip with configured real coupons & one-click copy
-- [ ] Horizontal scroll/grid of room type cards with authentic photography and starting rates
-- [ ] Property highlights, policies summary, FAQ accordion, authentic footer
+- [x] Deep maroon hero band with overlapping 4-cell search bar — verified: implemented with `#6E1426` to `#B3263A` gradient and overlapping SearchBar
+- [x] Offers strip with configured real coupons & one-click copy — verified: WELCOME10, STAY500, HARBOUR20 copy buttons tested
+- [x] Horizontal scroll/grid of room type cards with authentic photography and starting rates — verified: displays all 6 room types with distinct photography and specs
+- [x] Property highlights, policies summary, FAQ accordion, authentic footer — verified: 6 amenities, 4 policies, interactive FAQ accordion, and footer verified in Vite build
 
 ### Phase 4: Results & Search Page (`/search`)
 - [ ] Sticky compact SearchBar

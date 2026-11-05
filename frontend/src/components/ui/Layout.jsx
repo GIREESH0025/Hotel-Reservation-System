@@ -297,12 +297,12 @@ export function PublicLayout({ children }) {
   const formattedName = formatName(user?.name)
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-paper)' }}>
-      {/* 64px Minimal Editorial Navbar */}
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-canvas)' }}>
+      {/* 64px Modern Marketplace Navbar */}
       <header style={{
         height: '64px',
-        borderBottom: 'var(--border)',
-        backgroundColor: 'var(--color-paper)',
+        borderBottom: '1px solid var(--color-border)',
+        backgroundColor: '#FFFFFF',
         position: 'sticky',
         top: 0,
         zIndex: 50,
@@ -316,14 +316,14 @@ export function PublicLayout({ children }) {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          {/* Wordmark Only (No Tagline) */}
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+          {/* Wordmark Only */}
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: 'var(--font-sans)',
               fontSize: '1.25rem',
-              color: 'var(--color-ink)',
-              fontWeight: 600,
-              letterSpacing: '-0.01em',
+              color: '#111827',
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
             }}>
               {BRAND_NAME}
             </span>
@@ -476,24 +476,32 @@ export function PublicLayout({ children }) {
               )
             ) : (
               /* Logged Out Cluster */
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <NavIconButton
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Link
                   to="/login"
-                  icon={LogIn}
-                  title="Sign In"
-                  active={isCurrent('/login')}
-                />
+                  style={{
+                    color: '#111827',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    padding: '8px 16px',
+                    borderRadius: 9999,
+                    border: '1px solid #D1D5DB',
+                  }}
+                >
+                  Sign In
+                </Link>
                 <Link
                   to="/register"
                   style={{
-                    backgroundColor: 'var(--color-laterite)',
-                    color: 'var(--color-paper)',
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#FFFFFF',
                     textDecoration: 'none',
                     fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    padding: '8px 14px',
-                    borderRadius: 'var(--radius)',
-                    marginLeft: '8px',
+                    fontSize: '0.875rem',
+                    padding: '8px 18px',
+                    borderRadius: 9999,
+                    boxShadow: '0 2px 6px rgba(214, 57, 65, 0.3)',
                   }}
                 >
                   Create account

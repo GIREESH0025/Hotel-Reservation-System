@@ -67,6 +67,29 @@ export const HOTEL_CONFIG = {
       a: 'No. Harbour Row Hotel is a fully functional demonstration project built to showcase production-grade hotel booking and management software. No real payments are processed.',
     },
   ],
+  offers: [
+    {
+      code: 'WELCOME10',
+      title: '10% Welcome Discount',
+      desc: '10% off your booking up to ₹1,500 on all room categories',
+      minAmount: 2500,
+      badge: 'POPULAR',
+    },
+    {
+      code: 'STAY500',
+      title: 'Flat ₹500 Off',
+      desc: 'Instant ₹500 off on stays of 2 or more nights (min ₹4,000)',
+      minAmount: 4000,
+      badge: 'INSTANT SAVINGS',
+    },
+    {
+      code: 'HARBOUR20',
+      title: '20% Extended Stay',
+      desc: 'Save 20% on bookings of 3+ nights up to ₹3,000 max savings',
+      minAmount: 8000,
+      badge: 'LONG STAY',
+    },
+  ],
   // Curated room photographs representing each distinct room category
   roomImages: {
     'Standard': 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=700&q=80',
