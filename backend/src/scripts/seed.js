@@ -333,13 +333,20 @@ async function seedAllData() {
     });
   }
 
-  // ── C. 10 Current In-House Stays (checked_in) ─────────────────────────────
-  const currentRooms = activeRooms.slice(0, 10);
+  // ── C. Current In-House Stays (checked_in) ───────────────────────────────
+  // Distribute 1 room per room type so abundant rooms remain available today
+  const currentRooms = [
+    activeRooms[0], // Standard 101
+    activeRooms[2], // Deluxe King 104
+    activeRooms[4], // Twin Deluxe 105
+    activeRooms[6], // Accessible Queen 107
+    activeRooms[8], // Executive Suite 109
+  ];
   currentRooms.forEach((room, idx) => {
     const checkInN = -(idx % 3 + 1); // -1, -2, -3
     const checkOutN = (idx % 3 + 2); // +2, +3, +4
     const guest = guests[(guestIdx++) % guests.length];
-    const hasPaidFull = idx < 6;
+    const hasPaidFull = idx < 3;
 
     addReservation({
       guestId: guest._id,
@@ -354,13 +361,19 @@ async function seedAllData() {
     });
   });
 
-  // ── D. 12 Upcoming Stays (confirmed & pending) ───────────────────────────
-  const upcomingRooms = activeRooms.slice(10, 22);
+  // ── D. Upcoming Stays (confirmed & pending) ───────────────────────────────
+  // Future dates (5+ days out) so today through 4 days out remain completely bookable
+  const upcomingRooms = [
+    activeRooms[1], // Standard 102
+    activeRooms[3], // Deluxe King 203
+    activeRooms[7], // Accessible Queen 108
+    activeRooms[9], // Executive Suite 110
+  ];
   upcomingRooms.forEach((room, idx) => {
-    const checkInN = (idx % 4 + 1); // +1, +2, +3, +4
+    const checkInN = (idx * 2 + 5); // +5, +7, +9, +11
     const checkOutN = checkInN + (idx % 3 + 2); // 2 to 4 nights
     const guest = guests[(guestIdx++) % guests.length];
-    const isConfirmed = idx < 7;
+    const isConfirmed = idx < 2;
 
     addReservation({
       guestId: guest._id,

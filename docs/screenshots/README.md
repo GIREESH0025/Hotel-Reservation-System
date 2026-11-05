@@ -24,3 +24,4 @@ To fulfill the submission requirement (**Required Submission: screenshots and sh
 2. **Customer Flow (60s)**: Search rooms, select room type, complete 3-step checkout, show booking success screen.
 3. **Customer Account (30s)**: Show "My Bookings" with tabs, click printable folio, show "My Profile" with left nav bar.
 4. **Staff Operations (45s)**: Log in as `priya@harbourrow.com` / `admin@harbourrow.com`, show Front Desk Dashboard, show Room Tape Chart with multi-room booking bars, and show Admin Reports.
+

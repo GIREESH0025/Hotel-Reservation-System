@@ -145,7 +145,7 @@ export default function BookingSuccessPage() {
           </div>
 
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827', marginBottom: 8 }}>
-            Your Stay is Confirmed!
+            Room Booked Successfully!
           </h1>
           <p style={{ fontSize: '0.9375rem', color: '#4B5563', marginBottom: 24 }}>
             A formal confirmation voucher has been recorded. We look forward to welcoming you to {HOTEL_CONFIG.name}.

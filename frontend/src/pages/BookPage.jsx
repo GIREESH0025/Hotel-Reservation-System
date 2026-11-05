@@ -211,7 +211,7 @@ export default function BookPage() {
 
       // 1. Create Reservation
       const resPayload = {
-        roomTypeId,
+        roomTypeId: roomType?._id || roomTypeId,
         roomsCount,
         checkIn,
         checkOut,
@@ -237,9 +237,10 @@ export default function BookPage() {
       if (paymentChoice === 'deposit' || paymentChoice === 'full') {
         const amountType = paymentChoice === 'deposit' ? 'deposit' : 'full'
         try {
+          const resolvedMethod = paymentMethod === 'card' ? 'card' : paymentMethod === 'upi' ? 'upi' : 'demo_online'
           await reservationsApi.pay(createdRes._id, {
             amountType,
-            method: 'demo_online',
+            method: resolvedMethod,
             idempotencyKey,
           })
         } catch (payErr) {
@@ -250,7 +251,7 @@ export default function BookPage() {
       // 3. Clear draft and trigger context refresh
       clearDraft()
       triggerRefresh()
-      addToast('Reservation successfully confirmed!', 'success')
+      addToast('Room booked successfully!', 'success')
 
       // Navigate to success page
       navigate(`/booking/${createdRes._id}/success`)

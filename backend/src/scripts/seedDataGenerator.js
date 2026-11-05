@@ -36,6 +36,7 @@ const USERS_DATA = [
 
 const ROOM_TYPES_DATA = [
   {
+    _id: '6aecaead5cc6629acd101db1',
     name: 'Standard',
     description: 'Refined standard chamber overlooking the quiet courtyard. Featuring queen bedding and historic appointments.',
     baseRate: 2800,
@@ -57,6 +58,7 @@ const ROOM_TYPES_DATA = [
     ],
   },
   {
+    _id: '6aecaead5cc6629acd101db2',
     name: 'Deluxe King',
     description: 'Generous chamber with king bedding, private veranda, and antique writing bureau.',
     baseRate: 4800,
@@ -78,6 +80,7 @@ const ROOM_TYPES_DATA = [
     ],
   },
   {
+    _id: '6aecaead5cc6629acd101db3',
     name: 'Twin Deluxe',
     description: 'Twin mahogany single beds with generous sitting space, tailored for traveling companions or colleagues.',
     baseRate: 4500,
@@ -99,6 +102,7 @@ const ROOM_TYPES_DATA = [
     ],
   },
   {
+    _id: '6aecaead5cc6629acd101db4',
     name: 'Executive Suite',
     description: 'Expansive two-room suite featuring harbour water views, separate salon, and dedicated butler reception.',
     baseRate: 8500,
@@ -120,6 +124,7 @@ const ROOM_TYPES_DATA = [
     ],
   },
   {
+    _id: '6aecaead5cc6629acd101db5',
     name: 'Penthouse Suite',
     description: 'Our premier rooftop residency with private plunge pool, panoramic terrace, and private dining salon.',
     baseRate: 18000,
@@ -141,6 +146,7 @@ const ROOM_TYPES_DATA = [
     ],
   },
   {
+    _id: '6aecaead5cc6629acd101db6',
     name: 'Accessible Queen',
     description: 'Barrier-free ground chamber with wide doorways, roll-in rain shower, support rails, and emergency assistance.',
     baseRate: 3600,
