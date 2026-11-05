@@ -527,6 +527,7 @@
 - [x] Fix scroll-spy tab highlighting on `/rooms/:id` — verified: implemented passive window scroll listener tracking element offsets and document bottom bounds; added offset smooth-scroll calculation with 136px buffer and `scrollMarginTop: 136` across all 5 sections
 - [x] Ensure top navigation bar never disappears on `/my/profile` or admin profile pages — verified: extracted shared `TopNavbar` across both `PublicLayout` and `AppLayout`; mounted top navbar across all internal and public routes
 - [x] Redesign `/my/profile` matching modern home section — verified: rewritten `MyProfilePage.jsx` with sleek identity card, role pill badges, stay statistics, and modern personal details & password change cards; enabled route for `['customer', 'admin', 'receptionist']` and allowed self profile updates in backend user controller
+- [x] Separate account navigation bar on left of page & clean identity card wording — verified: created `AccountSidebar` rendered as a dedicated left navigation bar (`Profile & Settings`, `My Bookings`, `Payment History`, `Browse Rooms`); removed horizontal pills from page body; excised `Guest Patron` badge and `Active Account` text from user identity card
 
 ---
 

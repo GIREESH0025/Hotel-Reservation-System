@@ -13,6 +13,7 @@ import { SkeletonTable } from '../../components/ui/Skeleton'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { ConfirmDialog } from '../../components/ui/Modal'
 import { Button } from '../../components/ui/Button'
+import { AccountSidebar } from '../../components/ui/AccountSidebar'
 import { formatINR, formatDate } from '../../utils/helpers'
 
 const TABS = [
@@ -200,17 +201,29 @@ export default function MyReservationsPage() {
   ]
 
   return (
-    <div className="page-container" style={{ padding: '32px var(--content-pad)' }}>
-      <PageHeader
-        title="My Bookings"
-        subtitle="Review your current reservations, itemized stay folios, and booking history."
-      >
-        <Link to="/">
-          <Button variant="primary" size="sm">
-            + Book Another Stay
-          </Button>
-        </Link>
-      </PageHeader>
+    <div
+      style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '36px 24px',
+        display: 'flex',
+        gap: 32,
+        alignItems: 'flex-start',
+      }}
+    >
+      <AccountSidebar />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <PageHeader
+          title="My Bookings"
+          subtitle="Review your current reservations, itemized stay folios, and booking history."
+        >
+          <Link to="/">
+            <Button variant="primary" size="sm">
+              + Book Another Stay
+            </Button>
+          </Link>
+        </PageHeader>
 
       {/* Tabs Row */}
       <div style={{
@@ -293,17 +306,18 @@ export default function MyReservationsPage() {
         </>
       )}
 
-      {/* Cancel Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(cancelModalId)}
-        onClose={() => setCancelModalId(null)}
-        onConfirm={handleCancelConfirm}
-        title="Cancel Reservation"
-        message="Are you sure you wish to cancel this stay? Your chamber dates will be released and made available to other patrons immediately."
-        confirmLabel="Confirm Cancellation"
-        danger
-        loading={cancelling}
-      />
+        {/* Cancel Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={Boolean(cancelModalId)}
+          onClose={() => setCancelModalId(null)}
+          onConfirm={handleCancelConfirm}
+          title="Cancel Reservation"
+          message="Are you sure you wish to cancel this stay? Your chamber dates will be released and made available to other patrons immediately."
+          confirmLabel="Confirm Cancellation"
+          danger
+          loading={cancelling}
+        />
+      </div>
     </div>
   )
 }

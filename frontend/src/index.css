@@ -356,3 +356,19 @@ tr:hover td {
 .animate-popover {
   animation: fadeInScale 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ── Account Sidebar Responsive ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .account-sidebar {
+    width: 100% !important;
+    position: static !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    border-radius: 12px !important;
+    padding: 8px !important;
+  }
+  .account-sidebar a {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+}

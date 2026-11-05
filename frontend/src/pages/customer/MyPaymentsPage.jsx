@@ -10,6 +10,7 @@ import { Pagination } from '../../components/ui/Pagination'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { SkeletonTable } from '../../components/ui/Skeleton'
 import { ErrorState } from '../../components/ui/ErrorState'
+import { AccountSidebar } from '../../components/ui/AccountSidebar'
 import { formatINR, formatDate } from '../../utils/helpers'
 
 export default function MyPaymentsPage() {
@@ -116,58 +117,71 @@ export default function MyPaymentsPage() {
   ]
 
   return (
-    <div className="page-container" style={{ padding: '32px var(--content-pad)' }}>
-      <PageHeader
-        title="Payment & Remittance History"
-        subtitle="Itemized receipts and financial settlements for your stays."
-      />
+    <div
+      style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '36px 24px',
+        display: 'flex',
+        gap: 32,
+        alignItems: 'flex-start',
+      }}
+    >
+      <AccountSidebar />
 
-      {/* Summary Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px',
-          marginBottom: '24px',
-        }}
-      >
-        <div style={{ border: 'var(--border)', padding: '20px', backgroundColor: '#fff', borderRadius: 'var(--radius)' }}>
-          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-stone)', fontWeight: 600 }}>
-            Total Remitted
-          </span>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', margin: '4px 0 0', color: 'var(--color-moss)' }}>
-            {formatINR(totalPaid)}
-          </p>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <PageHeader
+          title="Payment History"
+          subtitle="Itemized receipts and financial settlements for your stays."
+        />
+
+        {/* Summary Cards */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px',
+            marginBottom: '24px',
+          }}
+        >
+          <div style={{ border: 'var(--border)', padding: '20px', backgroundColor: '#fff', borderRadius: 'var(--radius)' }}>
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-stone)', fontWeight: 600 }}>
+              Total Remitted
+            </span>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', margin: '4px 0 0', color: 'var(--color-moss)' }}>
+              {formatINR(totalPaid)}
+            </p>
+          </div>
+
+          <div style={{ border: 'var(--border)', padding: '20px', backgroundColor: '#fff', borderRadius: 'var(--radius)' }}>
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-stone)', fontWeight: 600 }}>
+              Refunds Processed
+            </span>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', margin: '4px 0 0', color: 'var(--color-slate)' }}>
+              {formatINR(totalRefunded)}
+            </p>
+          </div>
         </div>
 
-        <div style={{ border: 'var(--border)', padding: '20px', backgroundColor: '#fff', borderRadius: 'var(--radius)' }}>
-          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-stone)', fontWeight: 600 }}>
-            Refunds Processed
-          </span>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', margin: '4px 0 0', color: 'var(--color-slate)' }}>
-            {formatINR(totalRefunded)}
-          </p>
-        </div>
+        {loading && <SkeletonTable rows={5} cols={7} />}
+        {error && <ErrorState message={error} onRetry={refetch} />}
+
+        {!loading && !error && (
+          <>
+            <DataTable
+              columns={columns}
+              data={payments}
+              keyField="_id"
+              emptyMessage="No payment transactions recorded for your account."
+            />
+            {totalPages > 1 && (
+              <div style={{ marginTop: '24px' }}>
+                <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      {loading && <SkeletonTable rows={5} cols={7} />}
-      {error && <ErrorState message={error} onRetry={refetch} />}
-
-      {!loading && !error && (
-        <>
-          <DataTable
-            columns={columns}
-            data={payments}
-            keyField="_id"
-            emptyMessage="No payment transactions recorded for your account."
-          />
-          {totalPages > 1 && (
-            <div style={{ marginTop: '24px' }}>
-              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-            </div>
-          )}
-        </>
-      )}
     </div>
   )
 }
