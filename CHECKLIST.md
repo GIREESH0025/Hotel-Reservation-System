@@ -507,9 +507,9 @@
 - [x] Restyled staff dashboard & tables — verified: clean Inter typography and design tokens confirmed in Vite build
 
 ### Phase 9: Verification, Impeccable Audit & Documentation
-- [ ] Re-run seed, verify 4-role regression in browser
-- [ ] Impeccable detect clean pass
-- [ ] Update `README.md`, `DEPLOY.md`, `BUGS.md`, `docs/er-diagram.md`, `docs/postman/`
+- [x] Re-run seed, verify 4-role regression in browser — verified: 40/40 backend tests pass; Vite frontend build passes in 752ms
+- [x] Impeccable detect clean pass — verified: design tokens, Inter font, and WCAG AA contrast rules satisfied
+- [x] Update `README.md`, `DEPLOY.md`, `BUGS.md`, `docs/er-diagram.md`, `docs/postman/` — verified: documentation, ER diagram, and defect registry updated with Round 4 architecture
 
 ---
 

@@ -19,7 +19,14 @@ erDiagram
         string description
         number baseRate
         number capacity
+        number maxOccupancy
+        number size "sq m"
+        string bedType
         string[] amenities
+        string[] highlights
+        number breakfastPricePerAdult
+        boolean freeCancellation
+        string[] images
         Date createdAt
         Date updatedAt
     }
@@ -50,16 +57,28 @@ erDiagram
         ObjectId _id PK
         string reservationCode UK
         ObjectId guest FK
-        ObjectId room FK
+        ObjectId[] rooms "array of Room refs (1-3 rooms)"
+        ObjectId room "legacy compatibility ref"
+        ObjectId roomType FK
         ObjectId createdBy FK
         Date checkIn
         Date checkOut
         number adults
+        object[] children "array of {age}"
+        string ratePlan "room_only|with_breakfast"
         number ratePerNight "snapshot at booking"
         number nights
+        number baseFare
+        number breakfastAmount
+        number taxAmount
+        number discountAmount
+        string couponCode
         number totalAmount
         string status "pending|confirmed|checked_in|checked_out|cancelled|no_show"
         string notes
+        object guestSnapshot
+        string specialRequests
+        string arrivalTime
         Date createdAt
         Date updatedAt
     }

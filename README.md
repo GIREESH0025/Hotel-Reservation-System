@@ -1,38 +1,54 @@
 # Harbour Row Hotel Reservation System
 
-> **Project #8 — MERN Stack | Hotel Reservation System**
+> **Project #8 — MERN Stack | Modern Travel Marketplace Hotel Reservation System**
 
-A production-grade hotel reservation system with role-based access (Admin, Receptionist, Customer), overlap-prevention booking, and an editorial "printed hotel register" design.
+A production-grade hotel reservation and property management platform built on the MERN stack with role-based access (Admin, Receptionist, Customer), atomic overlap-prevention booking, server-authoritative pricing engine with GST slabs and coupon validation, dual-month range picker, multi-room booking (1-3 rooms), and a 3-step checkout wizard.
 
 ---
 
-## Features by Role
+## Key Capabilities & User Journeys
 
-### Admin
-- Full CRUD: Users, Rooms, Room Types, Guests, Reservations, Payments
-- Revenue reports (date range, Mongo aggregation)
-- Occupancy reports by room type
-- Role management (can change any user's role)
-- Tape chart view + folio view
+### Travel Marketplace Guest Experience (Public & Customer)
+- **Deep Maroon Hero & 4-Cell Search Bar**:
+  - Accommodation Category selector
+  - Dual-Month `DateRangePicker` with dark continuous range band (`#2E2E2E`), red weekends (`#D63941`), and live nights counter
+  - `GuestSelector` popover with 1-3 room steppers, adult counts, and individual child age selectors
+  - Red pill "Search hotels" CTA
+- **Direct Booking Offers Strip**:
+  - Verified coupons with one-click copy (`WELCOME10`, `STAY500`, `HARBOUR20`)
+- **Faceted Search Results (`/search`)**:
+  - Sticky compact SearchBar
+  - Left Filter Sidebar (price range dual slider, bed type checkboxes, meal plans, amenities, free cancellation toggle)
+  - Sorting: Recommended, Price (Low to High / High to Low), Capacity
+  - Real inventory indicators: Honest "Only N left!" when available rooms $\le 3$
+- **Room Category Detail Page (`/rooms/:id`)**:
+  - 5-Photo Mosaic Gallery with full-screen Lightbox modal
+  - Sticky Tab Bar with scroll-spy (`Overview`, `Rate Plans`, `Facilities`, `Policies`, `Location`)
+  - Rate Plans: "Room Only" vs "With Gourmet Breakfast"
+  - Sticky live server quote sidebar
+- **3-Step Checkout Wizard (`/book`)**:
+  - Step 1: Stay Details Review & Inclusions
+  - Step 2: Traveller Information (Myself/Someone else, +91 phone, arrival window, special requests)
+  - Step 3: Payment & Settlement (UPI QR, Credit/Debit card demo, Netbanking, Pay at Hotel, or 25% Deposit)
+  - Back confirmation modal (`BackConfirmModal`) preventing accidental cart exits
+  - Persistent booking draft stored via `BookingContext` (`sessionStorage`)
+- **Post-Booking Experience**:
+  - Success screen at `/booking/:id/success` with one-click `.ics` Calendar Download
+  - Customer bookings management (`/my/bookings`) with Upcoming, Past, and Cancelled tabs
+  - Printable Folio Statement & Tax Invoice (`/my/bookings/:id`)
+  - 48-Hour Free Cancellation guarantee with automatic refund recording
 
-### Receptionist
-- Create, view, and update reservations
-- Check guests in and out
-- Record payments (cash, card, UPI)
-- Manage guests (create, search, update)
-- Dashboard: today's arrivals, departures, in-house count
-- Tape chart (rooms × 14 days)
-- Toggle room maintenance status
-
-### Customer
-- Search room availability by check-in, check-out, adults
-- Book a room with instant 25% advance deposit, full prepayment, or pay at hotel
-- View own reservations across tabbed views (Upcoming, Past, Cancelled)
-- View and print itemized folio tax invoice (`/my/bookings/:id`)
-- Pay outstanding balance online anytime via demo payment gateway
-- View personal payment transaction ledger (`/my/payments`)
-- Cancel own pending/confirmed reservations with automatic refund policy (>48h prior)
-- Edit personal profile and securely update password
+### Operations & Staff Portals (Receptionist & Admin)
+- **Interactive Tape Chart (`/staff/chart`)**:
+  - 14-day visual room matrix
+  - Multi-room reservations draw an occupancy bar across each assigned room's row
+  - Click any empty cell to book; click any reserved bar to inspect the folio
+- **Front Desk Dashboard (`/staff/dashboard`)**:
+  - Today's arrivals, departures, occupied rooms, and pending payments
+- **Guest Ledger (`/staff/guests`) & Folio Payments (`/staff/payments`)**:
+  - Record desk payments (Cash, Card, UPI), process authorized refunds, and track balances
+- **Admin Management (`/admin/*`)**:
+  - Rooms, Room Types, Users management, and Revenue / Occupancy analytics aggregations
 
 ---
 
