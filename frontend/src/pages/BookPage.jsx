@@ -20,7 +20,7 @@ export default function BookPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { addToast, success, error } = useToast()
   const { triggerRefresh } = useRefresh()
   const { draft, updateDraft, clearDraft } = useBooking()
 
@@ -249,16 +249,42 @@ export default function BookPage() {
       }
 
       // 3. Clear draft and trigger context refresh
-      clearDraft()
-      triggerRefresh()
-      addToast('Room booked successfully!', 'success')
+      try {
+        clearDraft?.()
+      } catch (e) {
+        console.warn('clearDraft notice:', e)
+      }
+
+      try {
+        triggerRefresh?.()
+      } catch (e) {
+        console.warn('triggerRefresh notice:', e)
+      }
+
+      try {
+        if (typeof success === 'function') {
+          success('Room booked successfully!')
+        } else if (typeof addToast === 'function') {
+          addToast('Room booked successfully!', 'success')
+        }
+      } catch (e) {
+        console.warn('Toast notice:', e)
+      }
 
       // Navigate to success page
       navigate(`/booking/${createdRes._id}/success`)
     } catch (err) {
       console.error('Booking submission failed:', err)
       const msg = err.response?.data?.message || err.message || 'Booking submission failed. Please try again.'
-      addToast(msg, 'error')
+      try {
+        if (typeof error === 'function') {
+          error(msg)
+        } else if (typeof addToast === 'function') {
+          addToast(msg, 'error')
+        }
+      } catch (e) {
+        console.warn('Toast error notice:', e)
+      }
     } finally {
       setIsSubmitting(false)
     }

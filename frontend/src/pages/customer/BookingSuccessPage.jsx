@@ -10,7 +10,7 @@ import { useToast } from '../../context/ToastContext'
 export default function BookingSuccessPage() {
   const { id } = useParams()
   useTitle('Booking Confirmed — Harbour Row Hotel')
-  const { addToast } = useToast()
+  const { addToast, success } = useToast()
 
   const [reservation, setReservation] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -35,7 +35,8 @@ export default function BookingSuccessPage() {
     if (!reservation?.reservationCode) return
     navigator.clipboard?.writeText(reservation.reservationCode)
     setCopiedCode(true)
-    addToast('Reservation code copied to clipboard!', 'success')
+    if (typeof success === 'function') success('Reservation code copied to clipboard!')
+    else if (typeof addToast === 'function') addToast('Reservation code copied to clipboard!', 'success')
     setTimeout(() => setCopiedCode(false), 3000)
   }
 
@@ -81,7 +82,8 @@ export default function BookingSuccessPage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    addToast('Calendar event downloaded (.ics)', 'success')
+    if (typeof success === 'function') success('Calendar event downloaded (.ics)')
+    else if (typeof addToast === 'function') addToast('Calendar event downloaded (.ics)', 'success')
   }
 
   if (loading) {
