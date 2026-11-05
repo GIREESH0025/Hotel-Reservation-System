@@ -357,3 +357,4 @@ export function CheckIcon({ size = 16, color = 'currentColor', className = '', s
     </svg>
   )
 }
+

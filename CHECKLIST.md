@@ -523,6 +523,7 @@
 - [x] Remove pill line `★ Est. 1924 · Waterfront Heritage · Colaba, Mumbai` from hero section — verified: removed from `AvailabilityPage.jsx`
 - [x] Eliminate colorful OS emojis across the entire site and replace with normal clean SVG icons — verified: created `Icons.jsx` and updated `SearchBar`, `GuestSelector`, `BookPage`, `RoomTypeDetailPage`, and `SearchResultsPage`
 - [x] Fix Confirm Booking button not responding on payment page — verified: implemented `payReservation` in `paymentsApi`, switched to `reservationsApi.pay`, added staff/admin guest auto-resolution, and tested end-to-end booking & payment navigation
+- [x] Remove "Waterfront Property" pill badge from room details page — verified: removed from `RoomTypeDetailPage.jsx`
 
 ---
 

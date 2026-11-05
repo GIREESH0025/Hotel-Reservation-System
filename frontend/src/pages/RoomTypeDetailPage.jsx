@@ -247,25 +247,11 @@ export default function RoomTypeDetailPage() {
       </div>
 
       <div className="page-container" style={{ marginTop: 24 }}>
-        {/* Title & Key Badges */}
+        {/* Title */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-            <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: '#111827' }}>
-              {roomType.name}
-            </h1>
-            <span
-              style={{
-                background: 'var(--color-primary-light)',
-                color: 'var(--color-primary)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                padding: '4px 10px',
-                borderRadius: 20,
-              }}
-            >
-              Waterfront Property
-            </span>
-          </div>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: '#111827', marginBottom: 6 }}>
+            {roomType.name}
+          </h1>
 
           <div style={{ fontSize: '0.875rem', color: '#4B5563', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
