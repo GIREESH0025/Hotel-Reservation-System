@@ -62,7 +62,9 @@ const listReservations = asyncHandler(async (req, res) => {
   const [data, total] = await Promise.all([
     Reservation.find(filter)
       .populate('guest', 'fullName phone email')
-      .populate({ path: 'room', populate: { path: 'roomType', select: 'name' } })
+      .populate({ path: 'room', populate: { path: 'roomType', select: 'name baseRate images' } })
+      .populate({ path: 'rooms', populate: { path: 'roomType', select: 'name baseRate images' } })
+      .populate('roomType')
       .populate('createdBy', 'name')
       .sort(sort)
       .skip((page - 1) * limit)
@@ -78,7 +80,9 @@ const listReservations = asyncHandler(async (req, res) => {
 const getReservation = asyncHandler(async (req, res) => {
   const reservation = await Reservation.findById(req.params.id)
     .populate('guest', 'fullName phone email idProof')
-    .populate({ path: 'room', populate: { path: 'roomType', select: 'name baseRate amenities' } })
+    .populate({ path: 'room', populate: { path: 'roomType', select: 'name baseRate amenities images' } })
+    .populate({ path: 'rooms', populate: { path: 'roomType', select: 'name baseRate amenities images' } })
+    .populate('roomType')
     .populate('createdBy', 'name')
     .lean();
 
@@ -156,20 +160,67 @@ const createReservation = asyncHandler(async (req, res) => {
   const reservation = await reservationService.createReservation({
     guestId,
     roomId: req.body.roomId,
+    rooms: req.body.rooms,
+    roomIds: req.body.roomIds,
+    roomTypeId: req.body.roomTypeId,
+    roomsCount: req.body.roomsCount || (req.body.rooms ? req.body.rooms.length : 1),
     checkIn: req.body.checkIn,
     checkOut: req.body.checkOut,
     adults: req.body.adults,
+    children: req.body.children,
+    ratePlan: req.body.ratePlan,
+    couponCode: req.body.couponCode,
+    guestSnapshot: req.body.guestSnapshot,
+    specialRequests: req.body.specialRequests,
+    arrivalTime: req.body.arrivalTime,
     notes: req.body.notes,
     createdById: req.user.id,
     role: req.user.role,
   });
 
   const populated = await Reservation.findById(reservation._id)
-    .populate('guest', 'fullName phone')
-    .populate({ path: 'room', populate: { path: 'roomType', select: 'name' } })
+    .populate('guest', 'fullName phone email')
+    .populate({ path: 'room', populate: { path: 'roomType', select: 'name baseRate images' } })
+    .populate({ path: 'rooms', populate: { path: 'roomType', select: 'name baseRate images' } })
+    .populate('roomType')
     .lean();
 
   res.status(201).json({ success: true, message: 'Reservation created.', data: populated });
+});
+
+/** POST /api/v1/reservations/quote (Public) */
+const getQuote = asyncHandler(async (req, res) => {
+  const {
+    roomTypeId,
+    checkIn,
+    checkOut,
+    rooms = 1,
+    adults = 2,
+    children = [],
+    ratePlan = 'room_only',
+    couponCode = null,
+  } = req.body;
+
+  const RoomType = require('../models/RoomType.model');
+  const pricingService = require('../services/pricingService');
+
+  const roomTypeDoc = await RoomType.findById(roomTypeId).lean();
+  if (!roomTypeDoc) {
+    return res.status(404).json({ success: false, message: 'Room type not found.', errors: [] });
+  }
+
+  const quote = await pricingService.computeQuote({
+    roomTypeDoc,
+    checkIn: new Date(checkIn),
+    checkOut: new Date(checkOut),
+    rooms: parseInt(rooms, 10) || 1,
+    adults: parseInt(adults, 10) || 1,
+    children: Array.isArray(children) ? children : [],
+    ratePlan,
+    couponCode,
+  });
+
+  res.json({ success: true, data: quote });
 });
 
 /** PATCH /api/v1/reservations/:id */
@@ -226,5 +277,6 @@ const cancelReservation = asyncHandler(async (req, res) => {
 module.exports = {
   listReservations, getReservation, createReservation, updateReservation,
   deleteReservation, confirmReservation, checkIn, checkOut, cancelReservation,
+  getQuote,
 };
 

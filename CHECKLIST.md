@@ -454,14 +454,14 @@
 - [x] Rewrite `DESIGN.md` and `PRODUCT.md` for modern travel marketplace identity — verified: rewritten with full tokens and product rules
 
 ### Phase 1: Backend Domain Models, Pricing Service & Migration
-- [ ] Upgraded `RoomType` schema (`images[]`, `size`, `bedType`, `maxOccupancy`, `highlights[]`, `breakfastPricePerAdult`, `freeCancellation`)
-- [ ] Upgraded `Reservation` schema (`rooms[]` array of refs, `adults`, `children[{age}]`, `ratePlan`, `taxAmount`, `discountAmount`, `couponCode`, `guestSnapshot`, `specialRequests`, `arrivalTime`)
-- [ ] Configure `backend/src/config/hotel.config.js` (`offers[]`, `checkInTime`, `checkOutTime`, `depositPercent`, `cancellationFreeHours`, `childPolicy`, `taxSlabs`)
-- [ ] Server pricing service `backend/src/services/pricingService.js` and `POST /api/v1/reservations/quote`
-- [ ] Overlap check & multi-room assignment in `reservation.service.js` (conflict if ANY room has overlapping reservation)
-- [ ] Upgraded `GET /api/v1/rooms/availability` with multi-room availability, facets, bedType, mealPlan, price range, etc.
-- [ ] Idempotent migration script `backend/src/scripts/migrateRoomsArray.js` (`npm run migrate:rooms-array` with `--apply`)
-- [ ] Update seed script and automated backend tests (`round4.test.js`)
+- [x] Upgraded `RoomType` schema (`images[]`, `size`, `bedType`, `maxOccupancy`, `highlights[]`, `breakfastPricePerAdult`, `freeCancellation`) — verified: added to model, zod validator, and verified in seed & tests
+- [x] Upgraded `Reservation` schema (`rooms[]` array of refs, `adults`, `children[{age}]`, `ratePlan`, `taxAmount`, `discountAmount`, `couponCode`, `guestSnapshot`, `specialRequests`, `arrivalTime`) — verified: multikey index and model fields validated
+- [x] Configure `backend/src/config/hotel.config.js` (`offers[]`, `checkInTime`, `checkOutTime`, `depositPercent`, `cancellationFreeHours`, `childPolicy`, `taxSlabs`) — verified: config loaded with GST slabs and active offers
+- [x] Server pricing service `backend/src/services/pricingService.js` and `POST /api/v1/reservations/quote` — verified: calculates slab taxes, breakfast per adult, valid coupon discounts, returns breakdown & totalPayable
+- [x] Overlap check & multi-room assignment in `reservation.service.js` (conflict if ANY room has overlapping reservation) — verified: passes round4 multi-room overlap rejection test
+- [x] Upgraded `GET /api/v1/rooms/availability` with multi-room availability, facets, bedType, mealPlan, price range, etc. — verified: facets and room count filtering tested
+- [x] Idempotent migration script `backend/src/scripts/migrateRoomsArray.js` (`npm run migrate:rooms-array` with `--apply`) — verified: dry-run and apply tested cleanly
+- [x] Update seed script and automated backend tests (`round4.test.js`) — verified: 37/37 backend tests pass (`npm test --prefix backend`)
 
 ### Phase 2: Design Tokens & Reusable UI Components
 - [ ] Configure Inter font and CSS tokens in `frontend/src/index.css` (primary `#D63941`, hero gradient, canvas, cards, etc.)

@@ -215,7 +215,7 @@ test('Folio invoice endpoint returns itemized charges and transactions', async (
   assert.strictEqual(invRes.body.success, true);
   assert.ok(invRes.body.data.invoiceNumber.startsWith('INV-'));
   assert.strictEqual(invRes.body.data.lineItems.length, 1);
-  assert.strictEqual(invRes.body.data.financials.balance, 8000);
+  assert.strictEqual(invRes.body.data.financials.balance, 8960);
 });
 
 test('Cancellation >= 48 hours before check-in automatically creates a refund payment', async () => {

@@ -8,6 +8,13 @@ const roomTypeSchema = z.object({
   capacity: z.number({ required_error: 'Capacity is required' }).int().min(1).max(10),
   amenities: z.array(z.string().trim()).default([]),
   image: z.string().url('Image must be a valid URL').trim().optional(),
+  images: z.array(z.string().url().trim()).optional(),
+  size: z.number().min(10, 'Size must be at least 10 sq m').optional(),
+  bedType: z.string().trim().optional(),
+  maxOccupancy: z.number().int().min(1).max(10).optional(),
+  highlights: z.array(z.string().trim()).optional(),
+  breakfastPricePerAdult: z.number().min(0).optional(),
+  freeCancellation: z.boolean().optional(),
 });
 
 const updateRoomTypeSchema = roomTypeSchema.partial();

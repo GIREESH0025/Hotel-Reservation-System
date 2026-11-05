@@ -5,12 +5,29 @@ const asyncHandler = require('../middleware/asyncHandler');
 
 /** GET /api/v1/rooms/availability */
 const getAvailability = asyncHandler(async (req, res) => {
-  const { checkIn, checkOut, adults } = req.query;
+  const {
+    checkIn,
+    checkOut,
+    adults = 2,
+    rooms = 1,
+    children = 0,
+    roomType,
+    minPrice,
+    maxPrice,
+    bedType,
+    amenities,
+    mealPlan,
+    freeCancellation,
+    payAtHotel,
+    sort,
+    page,
+    limit,
+  } = req.query;
 
-  if (!checkIn || !checkOut || !adults) {
+  if (!checkIn || !checkOut) {
     return res.status(400).json({
       success: false,
-      message: 'checkIn, checkOut, and adults are required query parameters.',
+      message: 'checkIn and checkOut are required query parameters.',
       errors: [],
     });
   }
@@ -26,8 +43,38 @@ const getAvailability = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid date range. checkOut must be after checkIn.', errors: [] });
   }
 
-  const results = await searchAvailability(checkIn, checkOut, adultsNum);
-  res.json({ success: true, data: results, checkIn, checkOut, adults: adultsNum });
+  const results = await searchAvailability({
+    checkIn,
+    checkOut,
+    adults: adultsNum,
+    rooms: parseInt(rooms, 10) || 1,
+    children: parseInt(children, 10) || 0,
+    roomType,
+    minPrice,
+    maxPrice,
+    bedType,
+    amenities,
+    mealPlan,
+    freeCancellation,
+    payAtHotel,
+    sort,
+    page,
+    limit,
+  });
+
+  res.json({
+    success: true,
+    data: results.data || results,
+    page: results.page || 1,
+    limit: results.limit || 20,
+    total: results.total || (Array.isArray(results) ? results.length : 0),
+    totalPages: results.totalPages || 1,
+    facets: results.facets || {},
+    checkIn,
+    checkOut,
+    adults: adultsNum,
+    rooms: parseInt(rooms, 10) || 1,
+  });
 });
 
 /** GET /api/v1/rooms */

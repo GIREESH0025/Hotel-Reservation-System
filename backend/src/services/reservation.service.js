@@ -19,19 +19,25 @@ function generateCode() {
 }
 
 /**
- * Checks for overlapping reservations for a given room and date range.
+ * Checks for overlapping reservations for given room(s) and date range.
  * OVERLAP RULE: existing.checkIn < new.checkOut AND existing.checkOut > new.checkIn
  * Same-day turnover is ALLOWED: if existing.checkOut == new.checkIn, there is NO conflict.
  *
- * @param {string} roomId
+ * @param {string|string[]} roomIds
  * @param {Date} checkIn
  * @param {Date} checkOut
  * @param {string|null} excludeReservationId - exclude this reservation (for updates)
  * @param {mongoose.ClientSession} [session]
  */
-async function checkOverlap(roomId, checkIn, checkOut, excludeReservationId = null, session = null) {
+async function checkOverlap(roomIds, checkIn, checkOut, excludeReservationId = null, session = null) {
+  const ids = Array.isArray(roomIds) ? roomIds : [roomIds];
+  const stringIds = ids.map((id) => (id && id._id ? id._id.toString() : id.toString()));
+
   const query = {
-    room: roomId,
+    $or: [
+      { rooms: { $in: stringIds } },
+      { room: { $in: stringIds } },
+    ],
     status: { $in: Reservation.ACTIVE_STATUSES }, // pending, confirmed, checked_in
     checkIn: { $lt: checkOut },   // existing starts before new ends
     checkOut: { $gt: checkIn },   // existing ends after new starts
@@ -140,12 +146,39 @@ async function computeBalance(reservationId, session = null) {
 
 /**
  * Creates a new reservation inside a Mongoose transaction.
- * Server computes: nights, ratePerNight, totalAmount, reservationCode.
+ * Server computes: nights, ratePerNight, baseFare, taxes, discounts, totalAmount, reservationCode.
+ * Supports multi-room bookings (1-3 rooms of the same type) with children.
  * Customer-created → pending; staff-created → confirmed.
  */
-async function createReservation({ guestId, roomId, checkIn, checkOut, adults, notes, createdById, role }) {
-  // Validate dates before transaction
-  const nights = Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000);
+async function createReservation({
+  guestId,
+  roomId,
+  rooms,
+  roomIds,
+  roomTypeId,
+  roomsCount = 1,
+  checkIn,
+  checkOut,
+  adults = 2,
+  children = [],
+  ratePlan = 'room_only',
+  couponCode = null,
+  guestSnapshot = null,
+  specialRequests = '',
+  arrivalTime = '',
+  notes = '',
+  createdById,
+  role = 'customer',
+}) {
+  const pricingService = require('./pricingService');
+
+  // Parse & validate dates
+  const cin = new Date(checkIn);
+  const cout = new Date(checkOut);
+  cin.setUTCHours(0, 0, 0, 0);
+  cout.setUTCHours(0, 0, 0, 0);
+
+  const nights = Math.round((cout.getTime() - cin.getTime()) / 86400000);
   if (nights < 1 || nights > 30) {
     const err = new Error('Stay must be between 1 and 30 nights');
     err.statusCode = 400;
@@ -156,31 +189,105 @@ async function createReservation({ guestId, roomId, checkIn, checkOut, adults, n
   session.startTransaction();
 
   try {
-    // Lock and validate room inside transaction
-    const room = await Room.findById(roomId).session(session);
-    if (!room) {
-      const err = new Error('Room not found'); err.statusCode = 404; throw err;
-    }
-    if (room.status === 'maintenance') {
-      const err = new Error('This room is currently under maintenance and cannot be booked.'); err.statusCode = 400; throw err;
-    }
+    let resolvedRoomIds = [];
+    let roomTypeDoc = null;
 
-    // Check capacity
-    const roomType = await RoomType.findById(room.roomType).session(session).lean();
-    if (!roomType) { const err = new Error('Room type not found'); err.statusCode = 404; throw err; }
-    if (adults > roomType.capacity) {
-      const err = new Error(`This room type accommodates a maximum of ${roomType.capacity} adults. You requested ${adults}.`);
-      err.statusCode = 400; throw err;
+    // A. Explicit rooms passed (array or single)
+    const rawIds = roomIds || rooms;
+    if (Array.isArray(rawIds) && rawIds.length > 0) {
+      resolvedRoomIds = rawIds.map((id) => (id && id._id ? id._id.toString() : id.toString()));
+    } else if (roomId) {
+      resolvedRoomIds = [roomId.toString()];
     }
 
-    // Overlap check inside transaction
-    await checkOverlap(roomId, new Date(checkIn), new Date(checkOut), null, session);
+    if (resolvedRoomIds.length > 0) {
+      // Validate all specified rooms
+      const roomDocs = await Room.find({ _id: { $in: resolvedRoomIds } }).session(session);
+      if (roomDocs.length !== resolvedRoomIds.length) {
+        const err = new Error('One or more selected rooms were not found');
+        err.statusCode = 404;
+        throw err;
+      }
+      for (const rm of roomDocs) {
+        if (rm.status === 'maintenance') {
+          const err = new Error(`Room ${rm.number} is currently under maintenance and cannot be booked.`);
+          err.statusCode = 400;
+          throw err;
+        }
+      }
+      // Room type from first room
+      roomTypeDoc = await RoomType.findById(roomDocs[0].roomType).session(session).lean();
+    } else if (roomTypeId) {
+      // Auto-assign available rooms of roomTypeId
+      roomTypeDoc = await RoomType.findById(roomTypeId).session(session).lean();
+      if (!roomTypeDoc) {
+        const err = new Error('Room type not found');
+        err.statusCode = 404;
+        throw err;
+      }
 
-    const ratePerNight = room.rateOverride != null ? room.rateOverride : roomType.baseRate;
-    const totalAmount = Math.round(ratePerNight * nights * 100) / 100;
-    const status = role === 'customer' ? 'pending' : 'confirmed';
+      const activeRooms = await Room.find({
+        roomType: roomTypeId,
+        status: 'active',
+      }).session(session).lean();
 
-    // Generate unique code
+      // Find overlapping reservations to exclude blocked rooms
+      const overlapping = await Reservation.find({
+        status: { $in: Reservation.ACTIVE_STATUSES },
+        checkIn: { $lt: cout },
+        checkOut: { $gt: cin },
+      }).session(session).select('rooms room').lean();
+
+      const blockedSet = new Set();
+      for (const o of overlapping) {
+        if (Array.isArray(o.rooms)) o.rooms.forEach((r) => blockedSet.add(r.toString()));
+        if (o.room) blockedSet.add(o.room.toString());
+      }
+
+      const availableRooms = activeRooms.filter((r) => !blockedSet.has(r._id.toString()));
+      const reqCount = Math.max(1, parseInt(roomsCount, 10) || 1);
+
+      if (availableRooms.length < reqCount) {
+        const err = new Error(`Not enough available rooms of type ${roomTypeDoc.name} for the chosen dates (${availableRooms.length} available, ${reqCount} requested).`);
+        err.statusCode = 409;
+        throw err;
+      }
+
+      resolvedRoomIds = availableRooms.slice(0, reqCount).map((r) => r._id.toString());
+    } else {
+      const err = new Error('Either roomId, rooms, or roomTypeId must be provided.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (!roomTypeDoc) {
+      const err = new Error('Room type not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // Server-side Quote Computation
+    const quote = await pricingService.computeQuote({
+      roomTypeDoc,
+      checkIn: cin,
+      checkOut: cout,
+      rooms: resolvedRoomIds.length,
+      adults: parseInt(adults, 10) || 1,
+      children: Array.isArray(children) ? children : [],
+      ratePlan,
+      couponCode,
+    });
+
+    if (!quote.isValid) {
+      const err = new Error(quote.message);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // Overlap check inside transaction across all assigned rooms
+    await checkOverlap(resolvedRoomIds, cin, cout, null, session);
+
+    // Generate unique reservation code
     let code;
     let attempts = 0;
     do {
@@ -190,20 +297,36 @@ async function createReservation({ guestId, roomId, checkIn, checkOut, adults, n
       attempts++;
     } while (attempts < 5);
 
-    const [reservation] = await Reservation.create([{
-      reservationCode: code,
-      guest: guestId,
-      room: roomId,
-      createdBy: createdById,
-      checkIn: new Date(checkIn),
-      checkOut: new Date(checkOut),
-      adults,
-      ratePerNight,
-      nights,
-      totalAmount,
-      status,
-      notes: notes || '',
-    }], { session });
+    const status = role === 'customer' ? 'pending' : 'confirmed';
+
+    const [reservation] = await Reservation.create([
+      {
+        reservationCode: code,
+        guest: guestId,
+        rooms: resolvedRoomIds,
+        room: resolvedRoomIds[0], // backward compatibility
+        roomType: roomTypeDoc._id,
+        createdBy: createdById,
+        checkIn: cin,
+        checkOut: cout,
+        adults: quote.adults,
+        children: quote.children,
+        ratePlan: quote.ratePlan,
+        ratePerNight: quote.perNightRate,
+        nights: quote.nights,
+        baseFare: quote.breakdown.baseFare,
+        breakfastAmount: quote.breakdown.breakfastAmount,
+        taxAmount: quote.breakdown.taxAmount,
+        discountAmount: quote.breakdown.discountAmount,
+        totalAmount: quote.breakdown.totalAmount,
+        couponCode: quote.coupon?.code || couponCode,
+        guestSnapshot,
+        specialRequests: specialRequests || '',
+        arrivalTime: arrivalTime || '',
+        status,
+        notes: notes || '',
+      },
+    ], { session });
 
     await session.commitTransaction();
     return reservation;
@@ -315,9 +438,17 @@ async function checkIn(reservationId) {
     err.statusCode = 400; throw err;
   }
 
-  if (reservation.room && reservation.room.status === 'maintenance') {
-    const err = new Error('Cannot check in — the room is currently under maintenance. Please assign a different room.');
-    err.statusCode = 400; throw err;
+  const roomIds = (reservation.rooms && reservation.rooms.length > 0)
+    ? reservation.rooms.map((r) => (r && r._id ? r._id : r))
+    : (reservation.room ? [reservation.room._id || reservation.room] : []);
+
+  const assignedRooms = await Room.find({ _id: { $in: roomIds } }).lean();
+  for (const rm of assignedRooms) {
+    if (rm.status === 'maintenance') {
+      const err = new Error(`Cannot check in — Room ${rm.number} is currently under maintenance. Please reassign rooms.`);
+      err.statusCode = 400;
+      throw err;
+    }
   }
 
   reservation.status = 'checked_in';
@@ -420,47 +551,186 @@ async function cancelReservation(reservationId, actingUserId, actingRole) {
 }
 
 /**
- * Availability search.
- * Input: checkIn, checkOut, adults
- * Returns room types with count of free rooms (rooms in maintenance excluded).
+ * Upgraded Availability Search.
+ * Supports multi-room counts, adults/children occupancy, date range, facets,
+ * price filters, bedType, amenities, meal plan, free cancellation, sorting, and pagination.
  */
-async function searchAvailability(checkIn, checkOut, adults) {
+async function searchAvailability(arg1, arg2, arg3, arg4) {
+  let params = {};
+  if (typeof arg1 === 'object' && arg1 !== null && !arg2) {
+    params = { ...arg1 };
+  } else {
+    params = {
+      checkIn: arg1,
+      checkOut: arg2,
+      adults: arg3,
+      ...(typeof arg4 === 'object' ? arg4 : {}),
+    };
+  }
+
+  const {
+    checkIn,
+    checkOut,
+    rooms = 1,
+    adults = 2,
+    children = 0,
+    roomType,
+    minPrice,
+    maxPrice,
+    bedType,
+    amenities,
+    mealPlan,
+    freeCancellation,
+    payAtHotel,
+    sort = 'recommended',
+    page = 1,
+    limit = 20,
+  } = params;
+
   const checkInDate = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
+  checkInDate.setUTCHours(0, 0, 0, 0);
+  checkOutDate.setUTCHours(0, 0, 0, 0);
 
-  // Find all rooms that are ACTIVE and NOT blocked during the period
-  const blockedRoomIds = await Reservation.distinct('room', {
+  const nights = Math.max(1, Math.round((checkOutDate.getTime() - checkInDate.getTime()) / 86400000));
+  const requestedRooms = Math.max(1, parseInt(rooms, 10) || 1);
+  const adultsNum = Math.max(1, parseInt(adults, 10) || 2);
+  const childrenNum = Math.max(0, parseInt(children, 10) || 0);
+
+  // 1. Find overlapping reservations
+  const overlappingRes = await Reservation.find({
     status: { $in: Reservation.ACTIVE_STATUSES },
     checkIn: { $lt: checkOutDate },
     checkOut: { $gt: checkInDate },
-  });
+  }).select('rooms room').lean();
 
-  const freeRooms = await Room.find({
-    status: 'active',
-    _id: { $nin: blockedRoomIds },
-  }).populate('roomType').lean();
-
-  // Group by room type, filter by capacity
-  const grouped = {};
-  for (const room of freeRooms) {
-    if (!room.roomType) continue;
-    const rt = room.roomType;
-    if (rt.capacity < adults) continue; // Does not fit requested adults
-
-    const rtId = rt._id.toString();
-    if (!grouped[rtId]) {
-      grouped[rtId] = {
-        roomType: rt,
-        availableCount: 0,
-        rate: room.rateOverride != null ? room.rateOverride : rt.baseRate,
-        rooms: [],
-      };
+  const blockedRoomIds = new Set();
+  for (const r of overlappingRes) {
+    if (Array.isArray(r.rooms)) {
+      r.rooms.forEach((id) => blockedRoomIds.add(id.toString()));
     }
-    grouped[rtId].availableCount++;
-    grouped[rtId].rooms.push({ _id: room._id, number: room.number, floor: room.floor, rate: room.rateOverride != null ? room.rateOverride : rt.baseRate });
+    if (r.room) {
+      blockedRoomIds.add(r.room.toString());
+    }
   }
 
-  return Object.values(grouped);
+  // 2. Fetch all active rooms & room types
+  const allActiveRooms = await Room.find({ status: 'active' }).populate('roomType').lean();
+  const allRoomTypes = await RoomType.find().lean();
+
+  // 3. Group and evaluate availability & facets
+  const availableCategories = [];
+  const allFacets = {
+    minPrice: Infinity,
+    maxPrice: 0,
+    bedTypes: {},
+    amenities: {},
+    roomTypes: {},
+  };
+
+  for (const rt of allRoomTypes) {
+    const rtIdStr = rt._id.toString();
+    const matchingRooms = allActiveRooms.filter((rm) => {
+      const rmRtId = rm.roomType?._id ? rm.roomType._id.toString() : rm.roomType?.toString();
+      return rmRtId === rtIdStr;
+    });
+
+    const freeRooms = matchingRooms.filter((rm) => !blockedRoomIds.has(rm._id.toString()));
+    const availableCount = freeRooms.length;
+    const maxOcc = rt.maxOccupancy || rt.capacity || 2;
+    const totalCapacity = maxOcc * requestedRooms;
+    const fitsOccupancy = (adultsNum + childrenNum) <= totalCapacity && adultsNum >= requestedRooms;
+
+    if (availableCount >= requestedRooms && fitsOccupancy) {
+      const rate = rt.baseRate;
+      if (rate < allFacets.minPrice) allFacets.minPrice = rate;
+      if (rate > allFacets.maxPrice) allFacets.maxPrice = rate;
+
+      if (rt.bedType) {
+        allFacets.bedTypes[rt.bedType] = (allFacets.bedTypes[rt.bedType] || 0) + 1;
+      }
+      if (Array.isArray(rt.amenities)) {
+        rt.amenities.forEach((a) => {
+          allFacets.amenities[a] = (allFacets.amenities[a] || 0) + 1;
+        });
+      }
+      allFacets.roomTypes[rt.name] = (allFacets.roomTypes[rt.name] || 0) + 1;
+
+      // Apply filters
+      if (roomType && rt.name.toLowerCase() !== roomType.toLowerCase() && rtIdStr !== roomType) {
+        continue;
+      }
+      if (minPrice && rate < parseFloat(minPrice)) {
+        continue;
+      }
+      if (maxPrice && rate > parseFloat(maxPrice)) {
+        continue;
+      }
+      if (bedType && rt.bedType?.toLowerCase() !== bedType.toLowerCase()) {
+        continue;
+      }
+      if (amenities) {
+        const requiredAmenities = Array.isArray(amenities)
+          ? amenities
+          : amenities.split(',').map((s) => s.trim().toLowerCase());
+        const rtAmenitiesLower = (rt.amenities || []).map((a) => a.toLowerCase());
+        const hasAll = requiredAmenities.every((req) => rtAmenitiesLower.includes(req));
+        if (!hasAll) continue;
+      }
+      if (mealPlan === 'with_breakfast' && !rt.breakfastPricePerAdult) {
+        continue;
+      }
+      if (freeCancellation === true || freeCancellation === 'true') {
+        if (rt.freeCancellation === false) continue;
+      }
+
+      const totalStayAmount = rate * nights * requestedRooms;
+
+      availableCategories.push({
+        roomType: rt,
+        availableCount,
+        remainingCount: availableCount,
+        onlyFewLeft: availableCount <= 3,
+        rate,
+        totalStayAmount,
+        nights,
+        rooms: freeRooms.map((rm) => ({
+          _id: rm._id,
+          number: rm.number,
+          floor: rm.floor,
+          rate: rm.rateOverride != null ? rm.rateOverride : rt.baseRate,
+        })),
+      });
+    }
+  }
+
+  if (allFacets.minPrice === Infinity) allFacets.minPrice = 0;
+
+  // 4. Sort
+  if (sort === 'priceAsc') {
+    availableCategories.sort((a, b) => a.rate - b.rate);
+  } else if (sort === 'priceDesc') {
+    availableCategories.sort((a, b) => b.rate - a.rate);
+  } else if (sort === 'capacity') {
+    availableCategories.sort((a, b) => (b.roomType.capacity || 0) - (a.roomType.capacity || 0));
+  }
+
+  // 5. Paginate
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
+  const total = availableCategories.length;
+  const paginatedData = availableCategories.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+
+  // Return array with attached envelope properties so both array access and envelope access work seamlessly
+  const resultList = paginatedData;
+  resultList.data = paginatedData;
+  resultList.page = pageNum;
+  resultList.limit = limitNum;
+  resultList.total = total;
+  resultList.totalPages = Math.ceil(total / limitNum) || 1;
+  resultList.facets = allFacets;
+
+  return resultList;
 }
 
 module.exports = {

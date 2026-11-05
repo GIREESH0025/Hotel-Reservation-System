@@ -5,9 +5,13 @@ const paymentCtrl = require('../controllers/payment.controller');
 const { verifyToken } = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 const validate = require('../middleware/validate');
-const { createReservationSchema, updateReservationSchema } = require('../validators/reservation.validator');
+const { createReservationSchema, quoteSchema, updateReservationSchema } = require('../validators/reservation.validator');
 const { customerPaySchema } = require('../validators/payment.validator');
 
+// Public endpoints
+router.post('/quote', validate(quoteSchema), ctrl.getQuote);
+
+// Protected endpoints
 router.use(verifyToken);
 
 router.get('/', authorize('admin', 'receptionist', 'customer'), ctrl.listReservations);

@@ -14,7 +14,7 @@
  *   npm run seed
  *   npm run seed:reset
  */
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 
 const mongoose = require('mongoose');
 const User = require('../models/User.model');
@@ -127,7 +127,9 @@ async function seedAllData() {
     const targetRoom = rooms.find((r) => String(r._id) === String(roomId));
     const targetRt = roomTypes.find((rt) => String(rt._id) === String(targetRoom.roomType));
     const ratePerNight = targetRoom.rateOverride != null ? targetRoom.rateOverride : targetRt.baseRate;
-    const totalAmount = ratePerNight * nights;
+    const baseFare = ratePerNight * nights;
+    const taxAmount = Math.round(baseFare * 0.12);
+    const totalAmount = baseFare + taxAmount;
     const resCode = formatDateCode(ci, seq++);
 
     const resDoc = {
@@ -135,12 +137,20 @@ async function seedAllData() {
       reservationCode: resCode,
       guest: guestId,
       room: targetRoom._id,
+      rooms: [targetRoom._id],
+      roomType: targetRt._id,
       createdBy: createdById,
       checkIn: ci,
       checkOut: co,
       adults: Math.min(2, targetRt.capacity),
+      children: [],
+      ratePlan: 'room_only',
       ratePerNight,
       nights,
+      baseFare,
+      breakfastAmount: 0,
+      taxAmount,
+      discountAmount: 0,
       totalAmount,
       status,
       notes,

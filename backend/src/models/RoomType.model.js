@@ -34,6 +34,39 @@ const roomTypeSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    images: {
+      type: [String],
+      default: [],
+    },
+    size: {
+      type: Number,
+      min: [10, 'Size must be at least 10 sq m'],
+      default: 28,
+    },
+    bedType: {
+      type: String,
+      trim: true,
+      default: 'Queen Bed',
+    },
+    maxOccupancy: {
+      type: Number,
+      min: [1, 'Max occupancy must be at least 1'],
+      max: [10, 'Max occupancy cannot exceed 10'],
+      default: 2,
+    },
+    highlights: {
+      type: [String],
+      default: [],
+    },
+    breakfastPricePerAdult: {
+      type: Number,
+      min: [0, 'Breakfast price cannot be negative'],
+      default: 450,
+    },
+    freeCancellation: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

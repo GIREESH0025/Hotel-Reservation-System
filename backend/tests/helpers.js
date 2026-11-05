@@ -111,6 +111,16 @@ function matchesFilter(doc, filter) {
       if (!orMatch) return false;
       continue;
     }
+    if (Array.isArray(docVal)) {
+      const stringDocVals = docVal.map((x) => String(x && x._id ? x._id : x));
+      if (val && typeof val === 'object' && val.$in && Array.isArray(val.$in)) {
+        const targetStrings = val.$in.map(String);
+        if (!stringDocVals.some((item) => targetStrings.includes(item))) return false;
+        continue;
+      }
+      if (!stringDocVals.includes(String(val))) return false;
+      continue;
+    }
     if (val && typeof val === 'object') {
       if (val.$in && Array.isArray(val.$in)) {
         if (!val.$in.map(String).includes(String(docVal))) return false;
@@ -167,6 +177,19 @@ function populateDoc(doc, populates) {
           if (rt) doc.room.roomType = { ...rt };
         }
       }
+    } else if (field === 'rooms' && Array.isArray(doc.rooms)) {
+      doc.rooms = doc.rooms.map((rRef) => {
+        const rId = rRef?._id || rRef;
+        const r = store.rooms.find((x) => String(x._id) === String(rId));
+        if (!r) return rRef;
+        const copy = { ...r };
+        if (p.populate?.path === 'roomType' && copy.roomType) {
+          const rtId = copy.roomType?._id || copy.roomType;
+          const rt = store.roomtypes.find((x) => String(x._id) === String(rtId));
+          if (rt) copy.roomType = { ...rt };
+        }
+        return copy;
+      });
     } else if (field === 'roomType' && doc.roomType) {
       const rtId = doc.roomType?._id || doc.roomType;
       const rt = store.roomtypes.find((x) => String(x._id) === String(rtId));
