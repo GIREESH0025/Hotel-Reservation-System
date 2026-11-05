@@ -48,8 +48,8 @@ const updateUser = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: 'Only admins can change user roles.', errors: [] });
   }
 
-  // Customers can only update own profile
-  if (actingRole === 'customer' && targetId !== actingId) {
+  // Non-admins can only update own profile
+  if (actingRole !== 'admin' && targetId !== actingId) {
     return res.status(403).json({ success: false, message: 'You can only update your own profile.', errors: [] });
   }
 

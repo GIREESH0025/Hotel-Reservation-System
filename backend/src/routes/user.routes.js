@@ -13,7 +13,7 @@ router.patch('/change-password', validate(changePasswordSchema), changePassword)
 
 router.get('/', authorize('admin'), listUsers);
 router.get('/:id', authorize('admin', 'receptionist', 'customer'), getUser);
-router.patch('/:id', authorize('admin', 'customer'), validate(updateUserSchema), updateUser);
+router.patch('/:id', authorize('admin', 'customer', 'receptionist'), validate(updateUserSchema), updateUser);
 router.delete('/:id', authorize('admin'), deleteUser);
 
 module.exports = router;

@@ -136,13 +136,68 @@ export default function RoomTypeDetailPage() {
     fetchQuote()
   }, [roomType, checkIn, checkOut, roomsCount, adults, parsedChildren.length, selectedRatePlan])
 
+  // Scroll-spy tracking ref to avoid jank when clicking tab buttons
+  const isClickingTabRef = useRef(false)
+
   const scrollToSection = (tabId) => {
     setActiveTab(tabId)
+    isClickingTabRef.current = true
     const el = document.getElementById(tabId)
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      const topOffset = 136 // 64px sticky navbar + 56px sticky tab bar + 16px buffer
+      const elementPosition = el.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - topOffset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      })
+      setTimeout(() => {
+        isClickingTabRef.current = false
+      }, 700)
     }
   }
+
+  // Scroll-spy: dynamically updates activeTab as user scrolls through sections
+  useEffect(() => {
+    if (loading || !roomType) return
+
+    const handleScroll = () => {
+      if (isClickingTabRef.current) return
+
+      const scrollPos = window.scrollY + 150
+      const windowBottom = window.scrollY + window.innerHeight
+      const docHeight = document.documentElement.scrollHeight
+
+      // If scrolled near bottom of page, highlight last tab ('location')
+      if (windowBottom >= docHeight - 80) {
+        setActiveTab('location')
+        return
+      }
+
+      const sectionIds = ['overview', 'rate-plans', 'facilities', 'policies', 'location']
+      let currentSection = 'overview'
+
+      for (const sId of sectionIds) {
+        const el = document.getElementById(sId)
+        if (el) {
+          const top = el.offsetTop
+          if (scrollPos >= top) {
+            currentSection = sId
+          }
+        }
+      }
+
+      setActiveTab(currentSection)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [loading, roomType])
 
   const handleContinueToBook = () => {
     if (!roomType) return
@@ -332,6 +387,7 @@ export default function RoomTypeDetailPage() {
             <section
               id="overview"
               style={{
+                scrollMarginTop: 136,
                 background: '#FFFFFF',
                 borderRadius: 16,
                 border: '1px solid #E5E7EB',
@@ -372,6 +428,7 @@ export default function RoomTypeDetailPage() {
             <section
               id="rate-plans"
               style={{
+                scrollMarginTop: 136,
                 background: '#FFFFFF',
                 borderRadius: 16,
                 border: '1px solid #E5E7EB',
@@ -507,6 +564,7 @@ export default function RoomTypeDetailPage() {
             <section
               id="facilities"
               style={{
+                scrollMarginTop: 136,
                 background: '#FFFFFF',
                 borderRadius: 16,
                 border: '1px solid #E5E7EB',
@@ -538,6 +596,7 @@ export default function RoomTypeDetailPage() {
             <section
               id="policies"
               style={{
+                scrollMarginTop: 136,
                 background: '#FFFFFF',
                 borderRadius: 16,
                 border: '1px solid #E5E7EB',
@@ -583,6 +642,7 @@ export default function RoomTypeDetailPage() {
             <section
               id="location"
               style={{
+                scrollMarginTop: 136,
                 background: '#FFFFFF',
                 borderRadius: 16,
                 border: '1px solid #E5E7EB',

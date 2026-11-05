@@ -81,7 +81,7 @@ export default function MyReservationDetailPage() {
   const balance = reservation.balance ?? reservation.totalAmount
 
   return (
-    <div className="page-container" style={{ maxWidth: '840px' }}>
+    <div className="page-container" style={{ maxWidth: '840px', padding: '32px var(--content-pad)' }}>
       {/* Print Stylesheet */}
       <style>{`
         @media print {

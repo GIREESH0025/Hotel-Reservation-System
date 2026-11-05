@@ -116,7 +116,7 @@ export default function MyPaymentsPage() {
   ]
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ padding: '32px var(--content-pad)' }}>
       <PageHeader
         title="Payment & Remittance History"
         subtitle="Itemized receipts and financial settlements for your stays."

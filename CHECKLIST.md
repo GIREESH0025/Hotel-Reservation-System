@@ -524,6 +524,9 @@
 - [x] Eliminate colorful OS emojis across the entire site and replace with normal clean SVG icons — verified: created `Icons.jsx` and updated `SearchBar`, `GuestSelector`, `BookPage`, `RoomTypeDetailPage`, and `SearchResultsPage`
 - [x] Fix Confirm Booking button not responding on payment page — verified: implemented `payReservation` in `paymentsApi`, switched to `reservationsApi.pay`, added staff/admin guest auto-resolution, and tested end-to-end booking & payment navigation
 - [x] Remove "Waterfront Property" pill badge from room details page — verified: removed from `RoomTypeDetailPage.jsx`
+- [x] Fix scroll-spy tab highlighting on `/rooms/:id` — verified: implemented passive window scroll listener tracking element offsets and document bottom bounds; added offset smooth-scroll calculation with 136px buffer and `scrollMarginTop: 136` across all 5 sections
+- [x] Ensure top navigation bar never disappears on `/my/profile` or admin profile pages — verified: extracted shared `TopNavbar` across both `PublicLayout` and `AppLayout`; mounted top navbar across all internal and public routes
+- [x] Redesign `/my/profile` matching modern home section — verified: rewritten `MyProfilePage.jsx` with sleek identity card, role pill badges, stay statistics, and modern personal details & password change cards; enabled route for `['customer', 'admin', 'receptionist']` and allowed self profile updates in backend user controller
 
 ---
 

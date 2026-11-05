@@ -200,10 +200,10 @@ export default function MyReservationsPage() {
   ]
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ padding: '32px var(--content-pad)' }}>
       <PageHeader
-        title="My Bookings &amp; Register"
-        subtitle="Review your current reservations, printable folios, and past history at Harbour Row Hotel."
+        title="My Bookings"
+        subtitle="Review your current reservations, itemized stay folios, and booking history."
       >
         <Link to="/">
           <Button variant="primary" size="sm">

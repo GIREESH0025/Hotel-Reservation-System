@@ -85,12 +85,12 @@ export default function App() {
                 }
               />
 
-              {/* Customer routes */}
+              {/* Customer & Patron account routes */}
               <Route
                 path="/my/bookings"
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
-                    <AppLayout><MyReservationsPage /></AppLayout>
+                    <PublicLayout><MyReservationsPage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />
@@ -98,7 +98,7 @@ export default function App() {
                 path="/my/bookings/:id"
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
-                    <AppLayout><MyReservationDetailPage /></AppLayout>
+                    <PublicLayout><MyReservationDetailPage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />
@@ -106,7 +106,7 @@ export default function App() {
                 path="/my/reservations"
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
-                    <AppLayout><MyReservationsPage /></AppLayout>
+                    <PublicLayout><MyReservationsPage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />
@@ -114,7 +114,7 @@ export default function App() {
                 path="/my/reservations/:id"
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
-                    <AppLayout><MyReservationDetailPage /></AppLayout>
+                    <PublicLayout><MyReservationDetailPage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />
@@ -122,15 +122,15 @@ export default function App() {
                 path="/my/payments"
                 element={
                   <ProtectedRoute allowedRoles={['customer']}>
-                    <AppLayout><MyPaymentsPage /></AppLayout>
+                    <PublicLayout><MyPaymentsPage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />
               <Route
                 path="/my/profile"
                 element={
-                  <ProtectedRoute allowedRoles={['customer']}>
-                    <AppLayout><MyProfilePage /></AppLayout>
+                  <ProtectedRoute allowedRoles={['customer', 'admin', 'receptionist']}>
+                    <PublicLayout><MyProfilePage /></PublicLayout>
                   </ProtectedRoute>
                 }
               />
