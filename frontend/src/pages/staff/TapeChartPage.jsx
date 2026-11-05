@@ -50,12 +50,24 @@ export default function TapeChartPage() {
   const reservations = resData?.data || []
 
   // Map each room and day to any reservation active on that night
-  // A reservation covers night D if reservation.checkIn <= D AND reservation.checkOut > D
+  // Supports multi-room reservations (rooms[]) and legacy single room (room)
   const cellMap = useMemo(() => {
     const map = {}
     reservations.forEach((r) => {
-      const rRoomId = typeof r.room === 'object' ? r.room?._id : r.room
-      if (!rRoomId) return
+      const targetRoomIds = []
+      if (Array.isArray(r.rooms) && r.rooms.length > 0) {
+        r.rooms.forEach((rm) => {
+          const id = typeof rm === 'object' ? rm?._id : rm
+          if (id) targetRoomIds.push(String(id))
+        })
+      }
+      if (r.room) {
+        const id = typeof r.room === 'object' ? r.room?._id : r.room
+        if (id && !targetRoomIds.includes(String(id))) {
+          targetRoomIds.push(String(id))
+        }
+      }
+      if (targetRoomIds.length === 0) return
 
       const rIn = new Date(r.checkIn)
       rIn.setHours(0, 0, 0, 0)
@@ -64,8 +76,10 @@ export default function TapeChartPage() {
 
       days.forEach((day, dayIndex) => {
         if (day >= rIn && day < rOut) {
-          const key = `${rRoomId}_${dayIndex}`
-          map[key] = r
+          targetRoomIds.forEach((rmId) => {
+            const key = `${rmId}_${dayIndex}`
+            map[key] = r
+          })
         }
       })
     })

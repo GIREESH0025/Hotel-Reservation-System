@@ -63,8 +63,14 @@ export default function ReservationsListPage() {
     },
     {
       key: 'room',
-      header: 'Chamber',
-      render: (row) => `${row.room?.number || '—'} (${row.room?.roomType?.name || ''})`,
+      header: 'Chamber(s)',
+      render: (row) => {
+        const roomNumbers = Array.isArray(row.rooms) && row.rooms.length > 0
+          ? row.rooms.map((r) => r.number || r).join(', ')
+          : (row.room?.number || '—')
+        const typeName = row.roomType?.name || row.room?.roomType?.name || row.rooms?.[0]?.roomType?.name || ''
+        return `${roomNumbers} ${typeName ? `(${typeName})` : ''}`
+      },
     },
     {
       key: 'checkIn',

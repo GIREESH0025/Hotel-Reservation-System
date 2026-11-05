@@ -235,13 +235,15 @@ export default function ReservationDetailPage() {
 
           <div style={{ marginBottom: '12px' }}>
             <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-stone)' }}>
-              Chamber Assigned
+              Chamber(s) Assigned
             </span>
             <p style={{ fontWeight: 600, fontSize: '1rem' }}>
-              Chamber {reservation.room?.number} &mdash; {reservation.room?.roomType?.name}
+              {Array.isArray(reservation.rooms) && reservation.rooms.length > 0
+                ? reservation.rooms.map((r) => `Room ${r.number || r}`).join(', ')
+                : `Room ${reservation.room?.number || '—'}`} &mdash; {reservation.roomType?.name || reservation.room?.roomType?.name || 'Chamber'}
             </p>
             <p style={{ fontSize: '0.875rem', color: 'var(--color-stone)' }}>
-              Floor {reservation.room?.floor} &bull; Capacity: up to {reservation.room?.roomType?.capacity || 2} adults
+              Total Chambers: {Array.isArray(reservation.rooms) && reservation.rooms.length > 0 ? reservation.rooms.length : 1}
             </p>
           </div>
 

@@ -502,9 +502,9 @@
 - [x] Restyled My Bookings (`/my/bookings`), detail folio, payments, profile — verified: multi-room allotment and tax invoice print verified in Vite build
 
 ### Phase 8: Staff & Admin Integration
-- [ ] Multi-room tape chart (one bar per room in `rooms[]`)
-- [ ] Staff reservation management with multi-room & children support
-- [ ] Restyled staff dashboard & tables
+- [x] Multi-room tape chart (one bar per room in `rooms[]`) — verified: cellMap indexes all assigned rooms in `rooms[]` across 14-day grid
+- [x] Staff reservation management with multi-room & children support — verified: ReservationsListPage and ReservationDetailPage display multi-room allotments
+- [x] Restyled staff dashboard & tables — verified: clean Inter typography and design tokens confirmed in Vite build
 
 ### Phase 9: Verification, Impeccable Audit & Documentation
 - [ ] Re-run seed, verify 4-role regression in browser
