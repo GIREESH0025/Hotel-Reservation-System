@@ -87,3 +87,4 @@ export default function Stepper({ currentStep = 1, onStepClick }) {
     </div>
   )
 }
+

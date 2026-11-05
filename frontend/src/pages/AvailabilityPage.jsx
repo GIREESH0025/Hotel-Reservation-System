@@ -15,7 +15,6 @@ export default function AvailabilityPage() {
   const [roomTypes, setRoomTypes] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedFaq, setExpandedFaq] = useState(null)
-  const [copiedCode, setCopiedCode] = useState(null)
 
   useEffect(() => {
     async function loadCatalog() {
@@ -32,78 +31,170 @@ export default function AvailabilityPage() {
     loadCatalog()
   }, [])
 
-  const handleCopyCoupon = (code) => {
-    navigator.clipboard?.writeText(code)
-    setCopiedCode(code)
-    addToast(`Coupon "${code}" copied to clipboard!`, 'success')
-    setTimeout(() => setCopiedCode(null), 3000)
-  }
+  const heroRoomType = roomTypes.find((r) => r.name === 'Deluxe King') || roomTypes[0]
+  const heroImageSrc =
+    heroRoomType?.images?.[0] ||
+    heroRoomType?.image ||
+    HOTEL_CONFIG.roomImages?.['Deluxe King'] ||
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'
+  const heroRoomName = heroRoomType?.name || 'Deluxe King'
+  const heroRoomRate = heroRoomType?.baseRate || 4800
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-canvas)' }}>
-      {/* ── 1. Hero Banner with Deep Maroon Gradient ──────────────────────── */}
-      <section
-        style={{
-          background: 'linear-gradient(135deg, #6E1426 0%, #8C1C30 50%, #B3263A 100%)',
-          color: '#FFFFFF',
-          padding: '64px 24px 96px',
-          textAlign: 'center',
-          position: 'relative',
-        }}
-      >
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'rgba(255, 255, 255, 0.15)',
-              borderRadius: 20,
-              padding: '6px 16px',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              marginBottom: 16,
-              backdropFilter: 'blur(4px)',
-            }}
-          >
-            ★ Historic Waterfront Heritage · Colaba, Mumbai
+      {/* ── 1. Restored Editorial Two-Column Hero Section ─────────────────── */}
+      <section style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '40px 24px 24px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 40,
+            alignItems: 'center',
+          }}
+        >
+          {/* Left Column: Heading, Subtitle & Key Features */}
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--color-primary, #D63941)',
+                  fontWeight: 700,
+                  background: '#FEE2E2',
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                }}
+              >
+                ★ Est. 1924 · Waterfront Heritage · Colaba, Mumbai
+              </span>
+            </div>
+
+            <h1
+              style={{
+                fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
+                fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
+                lineHeight: 1.15,
+                color: '#111827',
+                margin: '0 0 16px 0',
+                letterSpacing: '-0.02em',
+                fontWeight: 800,
+              }}
+            >
+              Stay at Harbour Row, Colaba.
+            </h1>
+
+            <p
+              style={{
+                fontSize: '1.0625rem',
+                color: '#4B5563',
+                lineHeight: 1.6,
+                margin: '0 0 24px 0',
+                maxWidth: 540,
+              }}
+            >
+              Refined guest chambers, sweeping harbour waters, and authentic hospitality steps from the
+              Gateway of India. Direct reservations guarantee our best room rates and flexible arrival.
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-primary, #D63941)' }}>✓</span> Historic Colaba Waterfront
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-primary, #D63941)' }}>✓</span> 24hr Front Desk &amp; Concierge
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-primary, #D63941)' }}>✓</span> Best Direct Tariff Guarantee
+              </div>
+            </div>
           </div>
 
-          <h1
-            style={{
-              fontSize: 'clamp(2rem, 5vw, 3.25rem)',
-              fontWeight: 800,
-              color: '#FFFFFF',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
-              marginBottom: 16,
-            }}
-          >
-            {HOTEL_CONFIG.name}
-          </h1>
-
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-              color: '#FDE8E9',
-              maxWidth: 680,
-              margin: '0 auto',
-              lineHeight: 1.6,
-            }}
-          >
-            Refined guest chambers, sweeping harbour waters, and authentic hospitality steps from the
-            Gateway of India.
-          </p>
+          {/* Right Column: Featured Room Photography & Subtle Plaque */}
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                borderRadius: 16,
+                overflow: 'hidden',
+                height: '100%',
+                minHeight: 340,
+                border: '1px solid #E5E7EB',
+                position: 'relative',
+                backgroundColor: '#F3F4F6',
+                boxShadow: 'var(--shadow-card, 0 10px 25px -5px rgba(0, 0, 0, 0.1))',
+              }}
+            >
+              <img
+                src={heroImageSrc}
+                alt={heroRoomName}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  minHeight: 340,
+                  maxHeight: 420,
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+              {/* Image gradient overlay for caption legibility */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  padding: '24px 20px 16px 20px',
+                  background:
+                    'linear-gradient(to top, rgba(26,20,16,0.9) 0%, rgba(26,20,16,0.45) 60%, transparent 100%)',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      fontSize: '0.6875rem',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      opacity: 0.85,
+                      display: 'block',
+                      marginBottom: 2,
+                    }}
+                  >
+                    Featured Chamber
+                  </span>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {heroRoomName}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.6875rem', opacity: 0.85, display: 'block' }}>Direct rate from</span>
+                  <div style={{ fontWeight: 700, fontSize: '1.125rem', color: '#FFFFFF' }}>
+                    {formatINR(heroRoomRate)}{' '}
+                    <span style={{ fontSize: '0.75rem', fontWeight: 400, opacity: 0.85 }}>/ night</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── 2. Overlapping 4-Cell Search Bar ───────────────────────────────── */}
+      {/* ── 2. The 4-Cell Search Bar ───────────────────────────────── */}
       <div
         style={{
           maxWidth: 'var(--max-width)',
-          margin: '-48px auto 0',
+          margin: '8px auto 0',
           padding: '0 24px',
           position: 'relative',
           zIndex: 40,
@@ -121,97 +212,8 @@ export default function AvailabilityPage() {
         />
       </div>
 
-      <div className="page-container" style={{ marginTop: 48, paddingBottom: 64 }}>
-        {/* ── 3. Active Offers Strip ────────────────────────────────────────── */}
-        <section style={{ marginBottom: 48 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 16,
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>
-                Exclusive Direct Booking Offers
-              </h2>
-              <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                Apply these verified promo codes at checkout for instant savings.
-              </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 16,
-            }}
-          >
-            {HOTEL_CONFIG.offers?.map((offer) => (
-              <div
-                key={offer.code}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: 12,
-                  border: '1px solid #E5E7EB',
-                  padding: '16px 20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 16,
-                  boxShadow: 'var(--shadow-sm)',
-                }}
-              >
-                <div>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      background: 'var(--color-primary-light)',
-                      color: 'var(--color-primary)',
-                      fontSize: '0.6875rem',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      marginBottom: 6,
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    {offer.badge}
-                  </span>
-                  <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#111827' }}>
-                    {offer.title}
-                  </div>
-                  <div style={{ fontSize: '0.8125rem', color: '#6B7280', marginTop: 2 }}>
-                    {offer.desc}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleCopyCoupon(offer.code)}
-                  style={{
-                    background: copiedCode === offer.code ? 'var(--color-success-bg)' : '#F9FAFB',
-                    border: `1.5px dashed ${copiedCode === offer.code ? 'var(--color-success)' : '#D1D5DB'}`,
-                    borderRadius: 8,
-                    padding: '8px 12px',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    color: copiedCode === offer.code ? 'var(--color-success)' : '#111827',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 150ms ease',
-                  }}
-                >
-                  {copiedCode === offer.code ? '✓ Copied' : offer.code}
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── 4. Room Types & Rates Showcase ────────────────────────────────── */}
+      <div className="page-container" style={{ marginTop: 40, paddingBottom: 64 }}>
+        {/* ── 3. Room Types & Rates Showcase ────────────────────────────────── */}
         <section style={{ marginBottom: 56 }}>
           <div
             style={{

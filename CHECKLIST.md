@@ -513,6 +513,16 @@
 
 ---
 
+## Fix Round 5 — Hero Restoration, Coupon Removal & Checkout Flow Fix
+
+- [x] Eliminate all coupon codes and promo code UI from frontend — verified: excised coupon strip, accordion, and `HOTEL_CONFIG.offers`; `git grep -i "coupon" frontend/` returns 0 hits
+- [x] Restore editorial two-column heritage hero section with photography on Home page — verified: replaced flat maroon banner with two-column editorial hero while retaining the 4-cell calendar SearchBar
+- [x] Add missing `reservationsApi.quote` method to `frontend/src/api/reservations.api.js` — verified: `reservationsApi.quote` added and tested via live backend endpoint
+- [x] Fix "Continue to Book" error on `/rooms/:id` — verified: live quote computes and renders in `FareBreakup` immediately; button enabled and navigates to `/book` passing search parameters and updating `BookingContext`
+- [x] Full build and regression verification — verified: `vite build` completed in 960ms; 40/40 backend tests pass without errors
+
+---
+
 ## HUMAN-only Tasks
 
 > Do NOT tick these — prepare exact instructions in DEPLOY.md

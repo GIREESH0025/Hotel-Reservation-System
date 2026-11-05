@@ -55,3 +55,4 @@ test('formatISODate converts dates consistently into YYYY-MM-DD', () => {
   assert.strictEqual(formatISODate('2026-11-05'), '2026-11-05');
   assert.strictEqual(formatISODate(new Date(Date.UTC(2026, 10, 5))), '2026-11-05');
 });
+

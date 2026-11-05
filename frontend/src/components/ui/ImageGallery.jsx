@@ -232,3 +232,4 @@ export default function ImageGallery({ images = [], alt = 'Room photo' }) {
     </>
   )
 }
+

@@ -3,6 +3,7 @@ import api from './axios'
 export const reservationsApi = {
   list: (params) => api.get('/reservations', { params }),
   get: (id) => api.get(`/reservations/${id}`),
+  quote: (data) => api.post('/reservations/quote', data),
   create: (data) => api.post('/reservations', data),
   pay: (id, data) => api.post(`/reservations/${id}/pay`, data),
   invoice: (id) => api.get(`/reservations/${id}/invoice`),

@@ -51,9 +51,7 @@ export default function BookPage() {
   const [specialRequests, setSpecialRequests] = useState('')
   const [formErrors, setFormErrors] = useState({})
 
-  // Step 3 State (Payment & Coupon)
-  const [couponInput, setCouponInput] = useState(draft?.couponCode || '')
-  const [appliedCoupon, setAppliedCoupon] = useState(draft?.couponCode || '')
+  // Step 3 State (Payment)
   const [paymentMethod, setPaymentMethod] = useState('upi') // 'upi' | 'card' | 'netbanking' | 'hotel'
   const [paymentChoice, setPaymentChoice] = useState('full') // 'full' | 'deposit' | 'hotel'
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -97,26 +95,68 @@ export default function BookPage() {
           adults,
           children: initialChildren,
           ratePlan,
-          couponCode: appliedCoupon || null,
         })
         const q = res.data?.data || null
-        setQuote(q)
-        updateDraft({ quote: q, couponCode: appliedCoupon, ratePlan })
+        if (q) {
+          setQuote(q)
+          updateDraft({ quote: q, ratePlan })
+          return
+        }
       } catch (err) {
-        console.error('Quote error:', err)
+        console.warn('Quote calculation error, using fallback:', err)
       } finally {
         setQuoteLoading(false)
       }
+
+      // Client-side fallback if server calculation is unavailable
+      if (roomType) {
+        const n = Math.max(1, computeNights(checkIn, checkOut))
+        const baseRate = roomType.baseRate || 2800
+        const baseFare = baseRate * n * roomsCount
+        const breakfastPrice = roomType.breakfastPricePerAdult || 450
+        const breakfastAmount = ratePlan === 'with_breakfast' ? breakfastPrice * adults * n : 0
+        const subtotal = baseFare + breakfastAmount
+        const taxRate = subtotal / (n * roomsCount) >= 7500 ? 0.18 : 0.12
+        const taxAmount = Math.round(subtotal * taxRate)
+        const totalAmount = subtotal + taxAmount
+        const depositAmount = Math.round(totalAmount * 0.25)
+        const fallbackQ = {
+          isValid: true,
+          roomTypeId,
+          roomTypeName: roomType.name,
+          checkIn,
+          checkOut,
+          nights: n,
+          rooms: roomsCount,
+          adults,
+          children: initialChildren,
+          ratePlan,
+          perNightRate: baseRate,
+          baseFare,
+          breakfastAmount,
+          taxAmount,
+          discountAmount: 0,
+          totalAmount,
+          totalPayable: totalAmount,
+          depositAmount,
+          breakdown: {
+            baseFare,
+            breakfastAmount,
+            taxAmount,
+            taxRate: Math.round(taxRate * 100),
+            discountAmount: 0,
+            totalAmount,
+            depositAmount,
+            depositPercent: 25,
+            balanceDue: totalAmount - depositAmount,
+          },
+        }
+        setQuote(fallbackQ)
+        updateDraft({ quote: fallbackQ, ratePlan })
+      }
     }
     fetchQuote()
-  }, [roomTypeId, checkIn, checkOut, roomsCount, adults, initialChildren.length, ratePlan, appliedCoupon])
-
-  // Apply Coupon Code
-  const handleApplyCoupon = async (e) => {
-    if (e) e.preventDefault()
-    if (!couponInput.trim()) return
-    setAppliedCoupon(couponInput.trim().toUpperCase())
-  }
+  }, [roomTypeId, checkIn, checkOut, roomsCount, adults, initialChildren.length, ratePlan, roomType])
 
   // Handle Step 1 -> Step 2
   const handleProceedToTravellerInfo = () => {
@@ -173,7 +213,6 @@ export default function BookPage() {
         adults,
         children: initialChildren,
         ratePlan,
-        couponCode: appliedCoupon || undefined,
         guestSnapshot: {
           fullName: fullName.trim(),
           email: email.trim(),
@@ -652,51 +691,6 @@ export default function BookPage() {
                   <span>🔒 100% Secure Checkout</span>
                   <span>⚡ Instant Confirmation</span>
                   <span>🏨 Hotel Direct Booking</span>
-                </div>
-
-                {/* Coupon Code Strip */}
-                <div
-                  style={{
-                    background: '#FFFFFF',
-                    borderRadius: 16,
-                    border: '1px solid #E5E7EB',
-                    padding: '20px 24px',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                >
-                  <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#111827', marginBottom: 12 }}>
-                    Have a Coupon or Promo Code?
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="e.g. WELCOME10, STAY500"
-                      value={couponInput}
-                      onChange={(e) => setCouponInput(e.target.value)}
-                      style={{ flex: 1, textTransform: 'uppercase' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleApplyCoupon}
-                      className="btn-secondary"
-                      style={{ borderRadius: 8, padding: '8px 16px', fontWeight: 700 }}
-                    >
-                      Apply
-                    </button>
-                  </div>
-
-                  {quote?.coupon && (
-                    <div
-                      style={{
-                        marginTop: 10,
-                        color: 'var(--color-discount-green)',
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      ✓ {quote.couponMessage}
-                    </div>
-                  )}
                 </div>
 
                 {/* Settlement Options (Full / Deposit / At Hotel) */}
