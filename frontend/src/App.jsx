@@ -11,6 +11,7 @@ import { lazy, Suspense } from 'react'
 import { Skeleton } from './components/ui/Skeleton'
 
 const AvailabilityPage = lazy(() => import('./pages/AvailabilityPage'))
+const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const BookPage = lazy(() => import('./pages/BookPage'))
@@ -59,6 +60,7 @@ export default function App() {
               <Routes>
               {/* Public routes */}
               <Route path="/" element={<PublicLayout><AvailabilityPage /></PublicLayout>} />
+              <Route path="/search" element={<PublicLayout><SearchResultsPage /></PublicLayout>} />
               <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
               <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
               <Route

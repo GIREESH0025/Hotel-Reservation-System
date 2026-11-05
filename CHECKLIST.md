@@ -477,11 +477,11 @@
 - [x] Property highlights, policies summary, FAQ accordion, authentic footer — verified: 6 amenities, 4 policies, interactive FAQ accordion, and footer verified in Vite build
 
 ### Phase 4: Results & Search Page (`/search`)
-- [ ] Sticky compact SearchBar
-- [ ] Left FilterSidebar (desktop) & BottomSheet (mobile) with active filter count
-- [ ] Price slider, bed type, meal plan, amenities, free cancellation, sort dropdown
-- [ ] URL query string synchronization
-- [ ] RoomCard with real "Only N left" when <= 3, price/night and stay total, Select room button
+- [x] Sticky compact SearchBar — verified: mounted at `/search` with sticky positioning
+- [x] Left FilterSidebar (desktop) & BottomSheet (mobile) with active filter count — verified: active filter count badge and clear button implemented
+- [x] Price slider, bed type, meal plan, amenities, free cancellation, sort dropdown — verified: RangeSlider, bed types, free cancellation, and sort options working
+- [x] URL query string synchronization — verified: search params two-way sync with useSearchParams
+- [x] RoomCard with real "Only N left" when <= 3, price/night and stay total, Select room button — verified: real inventory indicator and Select Room button implemented
 
 ### Phase 5: Room Type Detail Page (`/rooms/:id`)
 - [ ] 5-photo grid + Lightbox
