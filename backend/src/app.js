@@ -53,13 +53,15 @@ if (env.nodeEnv !== 'test') {
   app.use(morgan('dev'));
 }
 
-// ── Health check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
-  res.json({ success: true, status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
-});
-
-// ── API Routes ───────────────────────────────────────────────────────────────
+// ── API Routes & Health check ────────────────────────────────────────────────
 const PREFIX = '/api/v1';
+
+const healthHandler = (_req, res) => {
+  res.json({ success: true, status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+};
+app.get('/health', healthHandler);
+app.get(`${PREFIX}/health`, healthHandler);
+
 app.use(`${PREFIX}/auth`, authRoutes);
 app.use(`${PREFIX}/users`, userRoutes);
 app.use(`${PREFIX}/room-types`, roomTypeRoutes);

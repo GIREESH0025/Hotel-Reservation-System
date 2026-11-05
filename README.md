@@ -13,9 +13,9 @@ A production-grade hotel reservation and property management platform built on t
   - Accommodation Category selector
   - Dual-Month `DateRangePicker` with dark continuous range band (`#2E2E2E`), red weekends (`#D63941`), and live nights counter
   - `GuestSelector` popover with 1-3 room steppers, adult counts, and individual child age selectors
-  - Red pill "Search hotels" CTA
-- **Direct Booking Offers Strip**:
-  - Verified coupons with one-click copy (`WELCOME10`, `STAY500`, `HARBOUR20`)
+  - Red pill "Search rooms" CTA
+- **Editorial Boutique Hero & Verified Tariffs**:
+  - Direct, honest booking rates without hidden fees or fake coupon traps
 - **Faceted Search Results (`/search`)**:
   - Sticky compact SearchBar
   - Left Filter Sidebar (price range dual slider, bed type checkboxes, meal plans, amenities, free cancellation toggle)
@@ -194,7 +194,7 @@ npm run dev        # starts on http://localhost:5173
 ```bash
 npm run dev         # Development with nodemon
 npm start           # Production start
-npm test            # Run automated test suite (33/33 passing)
+npm test            # Run automated test suite (40/40 passing)
 npm run seed        # Seed database with rich sample data (90 reservations)
 npm run seed:reset  # Idempotently reset and recreate sample data
 npm run fix:link-bookings # Idempotent guest-customer link repair (--apply to persist)
@@ -306,5 +306,5 @@ See [DEPLOY.md](DEPLOY.md) for step-by-step instructions.
 ## Design
 
 See [DESIGN.md](DESIGN.md) for the full design system documentation.  
-Direction: editorial "printed hotel register" — cream paper, ink text, 1px rules, Young Serif + Schibsted Grotesk.
+Direction: Modern travel marketplace — clean Inter typography, bold red CTAs (`#D63941`), structured search bar, responsive layout, and dedicated account navigation.
 
