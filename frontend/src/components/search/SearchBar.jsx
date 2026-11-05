@@ -8,7 +8,7 @@ import { formatShortDate, todayStr, daysFromTodayStr, computeNights } from '../.
 /**
  * 4-Cell Travel Marketplace SearchBar matching reference UI (Attachments #1, #2, #3, #4).
  * Modes:
- * - 'hero': Large overlapping card on hero banner with red pill "Search hotels" button
+ * - 'hero': Large overlapping card on hero banner with red pill "Search rooms" button
  * - 'compact': Slim sticky bar at the top of /search results page with red magnifying glass button
  */
 export default function SearchBar({
@@ -357,7 +357,7 @@ export default function SearchBar({
                 boxShadow: '0 4px 14px rgba(214, 57, 65, 0.4)',
               }}
             >
-              Search hotels
+              Search rooms
             </button>
           ) : (
             <button
