@@ -49,3 +49,14 @@ All 12 defects identified during Round 2 have been thoroughly fixed, covered by 
 - **Financial & Payment Accuracy**: Server calculates all rates and balances (`computeFinancials`). Client totals never trusted. No real card numbers or CVV collected. Demo payment gateway simulated latency and error handling with clear user guidance.
 - **Accessibility & Design Tokens**: 100% compliant with Impeccable design system (`npx impeccable detect` returned 0 errors). Ink on paper palette, 1px rules, Young Serif display, Schibsted Grotesk UI, tabular numbers, and zero AI visual anti-patterns.
 
+---
+
+## Fix Round 4 — Travel Marketplace Overhaul & Verification Registry
+
+| ID | Severity | Location | Repro Steps | Root Cause | Status |
+|---|---|---|---|---|---|
+| **REQ-R4-01** | **P0** | `backend/src/models/Reservation.model.js`, `RoomType.model.js` | Attempt multi-room reservation (1-3 rooms) or search with child ages. | Single `room` ObjectId reference on Reservation model restricted bookings to exactly one room; missing child age tracking and rate plans (`room_only` vs `with_breakfast`). | **Pending Phase 1** |
+| **REQ-R4-02** | **P0** | `backend/src/services/pricingService.js` | Client requests stay quote with coupons, breakfast, taxes. | Missing server-authoritative `quote` endpoint; pricing computed piecemeal. | **Pending Phase 1** |
+| **REQ-R4-03** | **P1** | `frontend/src/components/search/` | User picks dates and guests on mobile or desktop. | Generic date inputs instead of dual-month range picker with continuous dark band, red weekends, and guest stepper with child ages. | **Pending Phase 2-3** |
+
+

@@ -1,131 +1,126 @@
-# DESIGN.md — Harbour Row Hotel Design System
+# DESIGN.md — Harbour Row Hotel Design System (Modern Travel Marketplace)
 
-## 1. Generic defaults I am deliberately avoiding
+## 1. Visual Direction & Identity
 
-Before writing any UI code, I listed the defaults I would reach for by habit — and rejected each:
+This design direction replaces the previous printed register aesthetic with a **modern travel marketplace design system**, modeled after premier hotel booking platforms while remaining authentic to our single-property identity:
+- **Audience**: Discerning travelers booking on mobile and desktop, plus front-desk staff operating high-velocity operational desks.
+- **Tone**: Clear, trustworthy, fast. Direct without being cold, never high-pressure or gimmicky.
+- **Honesty First**: Never invent fake urgency (no countdown timers, no "X people viewing"), no fabricated reviews or ratings, no invented awards. Our brand is the configured hotel name and authentic room categories.
 
-| Default I would normally reach for | Why it is wrong here |
-|---|---|
-| Inter font everywhere | Generic; every SaaS uses it; loses the editorial register |
-| Purple/blue gradient headers | Looks like a fintech dashboard, not a hotel register |
-| Cards inside cards (nested box shadows) | Adds visual noise; a hotel ledger uses ruled lines |
-| Gray text on colored backgrounds (low-contrast badges) | Accessibility risk; opaque, not specific |
-| Centered hero with two buttons + icon tiles | The home page IS the search; no marketing content needed |
-| Font Awesome icon tiles above section headings | Decoration without function; banned |
-| Rounded corners everywhere (8-12px radius) | Looks soft and consumer; we want precise and editorial |
-| Box shadows for depth | Use 1px rules instead |
-| Modal overlays with blur/glass effects | Distracting; use bordered panels |
+---
 
-## 2. Confirmed design direction
-
-The visual world is a **printed hotel register**: black ink on cream paper, ruled horizontal lines, serif numerals for room numbers, grotesk type for all operational UI. Think a well-maintained guestbook, not a booking app.
-
-## 3. Design rationale
-
-**Why this world:** A hotel reservation system is fundamentally a ledger. The visual language of printed registers — ruled lines, tabular numerals, strong type hierarchy, no decoration — reinforces reliability and precision, which is exactly what hotel staff and guests need. It is also genuinely distinctive against every SaaS competitor.
-
-**Why Young Serif + Schibsted Grotesk:** Young Serif has the warmth and legibility of a classic hotel's letterhead without the pretension of display-only luxury serifs. Schibsted Grotesk is a humanist sans with strong legibility at small sizes, appropriate for dense operational tables. The combination reads as "established but accessible."
-
-**Why laterite as the action colour:** Laterite (#A4442A, a warm brick red) is functional, specific, and rare enough to signal action without competing with status colours. It is used only for primary interactive elements — never for decoration.
-
-## 4. Design tokens (CSS custom properties)
+## 2. Design Tokens (CSS Custom Properties)
 
 ```css
-/* Defined in frontend/src/index.css */
 :root {
-  /* Palette */
-  --color-paper:    #F3EEE4;  /* page background */
-  --color-ink:      #1C1B18;  /* primary text */
-  --color-rule:     #D9D1C0;  /* borders, separators */
-  --color-laterite: #A4442A;  /* primary action only */
-  --color-moss:     #3F5E4A;  /* confirmed status */
-  --color-ochre:    #B0822A;  /* pending status */
-  --color-slate:    #2F4858;  /* checked-in status */
-  --color-stone:    #8A8173;  /* cancelled / no-show / muted text */
-  --color-error:    #B42318;  /* errors */
+  /* Brand & Action Palette */
+  --color-primary:      #D63941;  /* vibrant red primary CTA */
+  --color-primary-dark: #B92D35;  /* hover/active state */
+  --color-primary-tint: #FBE4E6;  /* subtle badge / stepper tint */
+  --color-hero-start:   #6E1426;  /* maroon gradient start */
+  --color-hero-end:     #B3263A;  /* maroon gradient end */
+
+  /* Neutral Surfaces & Ink */
+  --color-canvas:       #F3F3F8;  /* page background / canvas */
+  --color-surface:      #FFFFFF;  /* cards, modals, sheets */
+  --color-ink:          #1F1F1F;  /* primary typography */
+  --color-muted:        #6B6B75;  /* secondary / helper text */
+  --color-line:         #E3E3EA;  /* borders, dividers */
+  --color-range-dark:   #2E2E2E;  /* selected calendar range band */
+
+  /* Semantic Feedback */
+  --color-success:      #1A7F37;  /* discounts, confirmed, paid */
+  --color-warning:      #B7791F;  /* pending actions, notices */
+  --color-error:        #C62828;  /* validation errors, declines */
 
   /* Typography */
-  --font-display: 'Young Serif', Georgia, serif;
-  --font-ui:      'Schibsted Grotesk', system-ui, sans-serif;
-  --font-mono:    'Courier New', monospace;
-
-  /* Numeric rendering */
-  --font-numeric: 'Schibsted Grotesk', system-ui, sans-serif;
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-numeric: 'Inter', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 
-  /* Spacing scale (8px base) */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
+  /* Type Scale */
+  --text-xs:   0.75rem;     /* 12px */
+  --text-sm:   0.875rem;    /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg:   1.25rem;     /* 20px */
+  --text-xl:   1.5rem;      /* 24px */
+  --text-2xl:  2rem;        /* 32px */
 
-  /* Layout */
-  --max-width: 1200px;
-  --sidebar-width: 220px;
+  /* Border Radii */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-pill: 9999px;
 
-  /* Border */
-  --border: 1px solid var(--color-rule);
-  --radius: 2px;
-  --radius-sm: 1px;
+  /* Shadows */
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-popover: 0 8px 30px rgba(0, 0, 0, 0.12);
 
-  /* Motion (honour prefers-reduced-motion) */
-  --transition: 150ms ease;
-}
+  /* Touch & Hit Targets */
+  --touch-target: 44px;
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    transition-duration: 0ms !important;
-    animation-duration: 0ms !important;
-  }
+  /* Motion */
+  --transition: 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 ```
 
-## 5. Status colour map
+---
 
-| Status | Token | Hex | Usage |
-|---|---|---|---|
-| confirmed | moss | #3F5E4A | Background tint + text |
-| pending | ochre | #B0822A | Background tint + text |
-| checked_in | slate | #2F4858 | Background tint + text |
-| checked_out | ink | #1C1B18 | Muted |
-| cancelled | stone | #8A8173 | Muted |
-| no_show | stone | #8A8173 | Muted |
+## 3. Core Component Patterns
 
-## 6. Component rules
+### 3.1 Search Bar (Hero & Sticky Compact)
+- **Hero Search Bar**: Elevated pill/rounded container overlapping the maroon hero band. 4 structured cells:
+  1. Room Type Selector (search icon + "All room types" or category name)
+  2. Date Range ("Check in" date > live nights count > "Check out" date)
+  3. Occupancy ("No. of rooms & guests" · "1 Room · 2 Adults")
+  4. Red pill CTA button ("Search hotels")
+- **Sticky Results Search Bar**: Compact horizontal bar anchored to the top of `/search` and `/rooms/:id` with quick-edit popovers.
 
-- **Buttons:** rectangular (border-radius: 2px), no pills. Primary = laterite background + paper text. Secondary = paper background + ink border. Ghost = no border, ink text. Danger = error background.
-- **Inputs:** 1px rule bottom only on focus (not full border box). Clear visible label above, never placeholder-only.
-- **Tables:** 1px horizontal rules between rows; no vertical lines. Header in Schibsted Grotesk caps tracking. Numbers right-aligned with tabular-nums.
-- **Badges:** small inline element, 2px radius, slightly tinted background + same-hue text.
-- **Room numbers:** large Young Serif numerals (2.5rem+) in place of photos.
+### 3.2 DateRangePicker Popover
+- Dual-month side-by-side desktop calendar (single month on mobile).
+- Mon to Sun layout; past dates disabled and muted.
+- Weekend dates (Sat, Sun) highlighted in red (`#D63941`).
+- Selected range rendered as a continuous dark charcoal band (`#2E2E2E`) with rounded caps on check-in and check-out.
+- Live "N Nights" counter between cells. Max 30 nights window.
+- Fully keyboard-accessible (arrows navigate days, Enter selects, Esc dismisses).
 
-## 7. Memorable elements
+### 3.3 GuestSelector Popover
+- "Select no. of rooms & guests".
+- Rooms stepper: 1 to 3 rooms.
+- Adults stepper: minimum 1 per room.
+- Children stepper: 0 to 17 years with "+ Add" button dynamically inserting an age selector per child and a remove button.
+- Live occupancy validation against room type capacity; Done button closes popover.
 
-### Tape Chart
-A horizontal scrolling grid: rooms on the Y axis, the next 14 days on the X axis. Each reservation is a coloured bar spanning its nights (colour = status). Click a bar to open the reservation. Click an empty cell to start a new booking. The room name column is sticky. Uses CSS Grid with explicit column widths.
+### 3.4 3-Step Checkout Stepper Pill
+- Step pill floating centered at the top of the header during `/book`:
+  - `(1) Details`
+  - `(2) Traveller Info`
+  - `(3) Pay`
+- Completed steps display a green circle with checkmark and are clickable to navigate backward.
+- Active step highlighted with dark pill and white text.
 
-### Folio View
-A reservation's financial detail view resembling a printed bill: each charge/payment on its own line, label left-aligned, amount right-aligned, connected by a dotted leader. A solid rule separates items from the total. Balance shown prominently — zero means ready to check out.
+### 3.5 Sticky Fare Breakup & Summary Card
+- Right-column desktop card anchoring checkout and room detail pages.
+- Includes room photography, hotel name, check-in/out times, night count, rate plan, and live server-calculated fare breakdown:
+  - Base Fare
+  - Breakfast (if selected)
+  - Taxes & Fees
+  - Total Discount (in green)
+  - **Total Payable** (prominent)
+- Free cancellation deadline reminder.
+- Coupon accordion with real-time validation via the quote endpoint.
 
-## 8. Responsive strategy
+### 3.6 Back Confirmation Modal
+- Dialog confirming exit when navigating away from checkout:
+  - "You are about to book your stay, do you really want to go back?"
+  - Secondary button: "Go back"
+  - Primary red button: "Stay"
 
-- Mobile-first CSS; breakpoints at 640px (sm), 768px (md), 1024px (lg), 1280px (xl)
-- Staff tables collapse to stacked rows at < 768px (each row becomes a mini-card using data-label attributes)
-- Tape chart: horizontal scroll with sticky first column; touch-scroll enabled
-- Navigation: hamburger menu below 768px
-- Target: fully usable at 360px viewport width
+---
 
-## 9. Copy principles
-
-- Write what happened: "Booking RES-20240115-X9K2 not found" not "Something went wrong"
-- Write what to do: "Check the reservation code and try again" not "Please try again later"
-- No marketing words: seamless, powerful, effortless, unlock, elevate, transform
-- No emoji in UI copy (icons are functional only)
-- Currency: always INR, always formatted with Intl.NumberFormat en-IN
-
+## 4. Accessibility & Layout
+- Mobile-first responsive grids tested across 360px, 768px, and 1440px.
+- Minimum touch target: 44px on all interactive controls.
+- Contrast compliant with WCAG AA on all text and states.
+- Respects `prefers-reduced-motion: reduce`.

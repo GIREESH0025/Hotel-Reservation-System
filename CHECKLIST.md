@@ -446,6 +446,73 @@
 
 ---
 
+## Fix Round 4 — Travel Marketplace UI/UX & Multi-Room Booking Journey
+
+### Phase 0: Baseline & Design System Setup
+- [x] Create git tag `before-redesign` and verify 33/33 baseline backend tests pass — verified: tag created and tests green
+- [x] Add Inter font ignore to `.impeccable/config.json` — verified: `Added overused-font=inter to shared detector ignoreValues`
+- [x] Rewrite `DESIGN.md` and `PRODUCT.md` for modern travel marketplace identity — verified: rewritten with full tokens and product rules
+
+### Phase 1: Backend Domain Models, Pricing Service & Migration
+- [ ] Upgraded `RoomType` schema (`images[]`, `size`, `bedType`, `maxOccupancy`, `highlights[]`, `breakfastPricePerAdult`, `freeCancellation`)
+- [ ] Upgraded `Reservation` schema (`rooms[]` array of refs, `adults`, `children[{age}]`, `ratePlan`, `taxAmount`, `discountAmount`, `couponCode`, `guestSnapshot`, `specialRequests`, `arrivalTime`)
+- [ ] Configure `backend/src/config/hotel.config.js` (`offers[]`, `checkInTime`, `checkOutTime`, `depositPercent`, `cancellationFreeHours`, `childPolicy`, `taxSlabs`)
+- [ ] Server pricing service `backend/src/services/pricingService.js` and `POST /api/v1/reservations/quote`
+- [ ] Overlap check & multi-room assignment in `reservation.service.js` (conflict if ANY room has overlapping reservation)
+- [ ] Upgraded `GET /api/v1/rooms/availability` with multi-room availability, facets, bedType, mealPlan, price range, etc.
+- [ ] Idempotent migration script `backend/src/scripts/migrateRoomsArray.js` (`npm run migrate:rooms-array` with `--apply`)
+- [ ] Update seed script and automated backend tests (`round4.test.js`)
+
+### Phase 2: Design Tokens & Reusable UI Components
+- [ ] Configure Inter font and CSS tokens in `frontend/src/index.css` (primary `#D63941`, hero gradient, canvas, cards, etc.)
+- [ ] Custom `DateRangePicker` component (dual-month popover, Mon-Sun, weekend red, dark range band, keyboard nav)
+- [ ] `GuestSelector` component (rooms 1-3, adults >= rooms, children with age selectors, live validation)
+- [ ] Reusable components: `Stepper` (3-step pill), `RangeSlider`, `FareBreakup`, `ImageGallery` with Lightbox, `BottomSheet`, `Popover`
+- [ ] Shared date utility with Short ("05 Nov, Thu") and Long ("Thu, 05 Nov 2026") formats + tests
+
+### Phase 3: Home Page Marketplace Overhaul
+- [ ] Deep maroon hero band with overlapping 4-cell search bar
+- [ ] Offers strip with configured real coupons & one-click copy
+- [ ] Horizontal scroll/grid of room type cards with authentic photography and starting rates
+- [ ] Property highlights, policies summary, FAQ accordion, authentic footer
+
+### Phase 4: Results & Search Page (`/search`)
+- [ ] Sticky compact SearchBar
+- [ ] Left FilterSidebar (desktop) & BottomSheet (mobile) with active filter count
+- [ ] Price slider, bed type, meal plan, amenities, free cancellation, sort dropdown
+- [ ] URL query string synchronization
+- [ ] RoomCard with real "Only N left" when <= 3, price/night and stay total, Select room button
+
+### Phase 5: Room Type Detail Page (`/rooms/:id`)
+- [ ] 5-photo grid + Lightbox
+- [ ] Sticky tab bar with scroll-spy (Overview, Rooms, Facilities, Policies, Location)
+- [ ] Rate plan cards (Room only vs With breakfast)
+- [ ] Sticky price summary card on desktop / sticky bottom bar on mobile with live quote
+
+### Phase 6: 3-Step Checkout Wizard (`/book`)
+- [ ] `BookingContext` with `sessionStorage` persistence
+- [ ] 3-step pill header: 1 Details, 2 Traveller Info, 3 Pay
+- [ ] Back exit confirmation modal ("You are about to book your stay...")
+- [ ] Step 1 Details review, inline edit, rate plan
+- [ ] Step 2 Traveller Info with myself/someone else, +91 phone, arrival window, special requests
+- [ ] Step 3 Pay with full/deposit/hotel options, demo UPI/Card/Netbanking, idempotency, atomic create
+
+### Phase 7: Success Page & Customer Area
+- [ ] `/booking/:id/success` with .ics calendar download, tax invoice button
+- [ ] Restyled My Bookings (`/my/bookings`), detail folio, payments, profile
+
+### Phase 8: Staff & Admin Integration
+- [ ] Multi-room tape chart (one bar per room in `rooms[]`)
+- [ ] Staff reservation management with multi-room & children support
+- [ ] Restyled staff dashboard & tables
+
+### Phase 9: Verification, Impeccable Audit & Documentation
+- [ ] Re-run seed, verify 4-role regression in browser
+- [ ] Impeccable detect clean pass
+- [ ] Update `README.md`, `DEPLOY.md`, `BUGS.md`, `docs/er-diagram.md`, `docs/postman/`
+
+---
+
 ## HUMAN-only Tasks
 
 > Do NOT tick these — prepare exact instructions in DEPLOY.md

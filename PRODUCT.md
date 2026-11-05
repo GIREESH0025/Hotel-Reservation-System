@@ -1,40 +1,72 @@
-# PRODUCT.md — Harbour Row Hotel Reservation System
+# PRODUCT.md — Harbour Row Hotel Reservation System (Travel Marketplace Experience)
 
-## Audience
+## 1. Audience
 
-**Primary:** Hotel front-desk staff (Receptionist, Admin) working fast on shared desktop computers with moderate technical literacy. They need to check guests in and out, record payments, and manage room availability without making errors under pressure. Speed and reliability beat style.
+**Primary:** Hotel guests booking rooms on smartphones and desktop computers. They expect the visual speed, clarity, and familiarity of top-tier travel platforms — interactive date range pickers, room/guest popovers, faceted filters, room detail tabs, 3-step checkout, and clear fare breakdowns. Trust, transparent pricing, and effortless checkout drive conversion.
 
-**Secondary:** Hotel guests (Customers) booking rooms online, often on mobile. They need to find available rooms, confirm a booking, and check their reservation status. Trust and clarity beat cleverness.
+**Secondary:** Front-desk receptionists and management staff working quickly on shared desktop terminals. They require instant visibility over tape charts, check-in/out status, desk payments, and room availability without cognitive friction under pressure.
 
-## Purpose
+---
 
-A reliable, production-grade hotel reservation system that eliminates double-bookings through enforced overlap detection, keeps an accurate financial ledger per reservation (folio), and gives each role exactly the tools they need — nothing more.
+## 2. Purpose & Principles
 
-## Tone
+A high-performance, single-property hotel reservation platform combining the polished user experience of modern booking marketplaces with strict transactional integrity:
+- **Zero Double-Bookings**: Atomic MongoDB transactions enforce date overlap prevention across every assigned room in a reservation.
+- **Server-Authoritative Pricing**: Total amounts, taxes, discounts, breakfast surcharges, and deposit requirements are calculated exclusively on the server (`POST /api/v1/reservations/quote`). Client totals are never trusted.
+- **Authentic & Honest**: No artificial urgency counters, fake view counts, or fabricated user reviews. The brand is the configured hotel property and its real room inventory.
+- **Multi-Room Booking**: Guests can reserve 1 to 3 rooms of a room category in a single transaction with per-room adult and child occupancy tracking.
 
-Calm. Precise. Editorial. The system speaks like a well-trained hotel concierge: direct without being cold, never cheerful or salesy. Error messages say what happened and what to do. No jargon, no filler words ("seamless", "elevate", "unlock", "powerful"), no exclamation marks outside extreme success moments.
+---
 
-## Anti-references
+## 3. Tone of Voice
 
-- Generic SaaS landing pages (centered hero, two CTA buttons, icon tiles)
-- Travel-aggregator clutter (star ratings, "Only 2 left!", urgency banners)
-- Luxury-hotel clichés (cursive fonts, gold tones, marble textures, lifestyle photos)
-- Material Design defaults (card-on-card, purple/teal, floating action buttons)
+**Clear. Trustworthy. Fast.**
+- Concise, polite, and direct copy.
+- No jargon, no high-pressure sales rhetoric.
+- Error messages explicitly explain what happened and offer an immediate resolution path.
+- Transparent communication: "Booking details are saved in My bookings" (no false promises of automated transactional emails).
 
-## Success criteria
+---
 
-- A receptionist can check a guest in under 60 seconds with no training
-- A customer can find available rooms, book, and receive confirmation in under 3 minutes
-- Zero double-bookings: enforced at the API level with transactions
-- Every financial transaction is traceable: reservation → payments → folio balance
+## 4. Key Workflows
 
-## Platform
+### 4.1 Discovery & Search
+- **Home**: Deep maroon hero header featuring an overlapping 4-cell search bar (Room category selector | Check-in / Check-out dual-calendar | Rooms & Guests selector with child ages | Red search CTA).
+- **Offers**: Curated real coupons configured in `hotel.config.js` with instant one-click copy.
+- **Rooms Showcase**: Real-time room type cards with authentic photography and starting rates.
 
-Web application. Frontend: responsive from 360px to 1440px. Desktop-first for staff screens (data-dense tables, tape chart). Mobile-friendly for customer-facing screens (search, booking, my reservations).
+### 4.2 Search Results & Filtering (`/search`)
+- Sticky compact search bar with quick-edit popovers.
+- Left-hand faceted filter sidebar (desktop) and mobile bottom sheet:
+  - Price range slider with numeric inputs
+  - Room type checkboxes
+  - Bed type filter
+  - Meal plan (Room only / With breakfast)
+  - Free cancellation toggle
+  - Pay at hotel toggle
+  - Amenities checklist
+- Dynamic sorting: Recommended, Price (low to high), Price (high to low), Capacity.
+- Real-time remaining room indicators ("Only 2 left") shown strictly when inventory is $\le 3$.
 
-## Brand
+### 4.3 Room Type Details (`/rooms/:id`)
+- 5-photo grid (1 primary + 4 thumbnail gallery) with full-screen Lightbox.
+- Quick facts row (room size in sq m, bed configuration, maximum occupancy).
+- Sticky tab navigation with scroll-spy: Overview, Rooms, Facilities, Policies, Location.
+- Rate plan comparison: "Room only" vs "With breakfast" with clear cancellation terms.
+- Sticky fare card with live quote preview and alternative date recommendations if unavailable.
 
-Text wordmark: **Harbour Row Hotel** (from BRAND_NAME constant; no logo, no icon).  
-Footer: "Demo project, not a real hotel."  
-Currency: INR via `Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' })`.
+### 4.4 3-Step Checkout Journey (`/book`)
+- **Step 1: Details**: Review selected stay parameters, rate plans, and cancellation terms.
+- **Step 2: Traveller Info**: Guest details ("Myself" vs "Someone else"), phone verification, special requests counter, arrival window, and optional companion names.
+- **Step 3: Pay**:
+  - Payment choices: Pay full now, Pay 25% deposit, or Pay at hotel.
+  - Demo payment options: UPI (QR code simulation), Credit/Debit Card, Netbanking.
+  - Transparent "Demo mode: no real money charged" security banner.
+  - Atomic transaction: availability re-check, room assignment, quote recalculation, payment recording.
+- **Back Exit Confirmation**: Intercepts accidental exits with a reassuring modal.
 
+### 4.5 Post-Booking & Management
+- **Success Page**: Reservation code, stay summary, .ics calendar export, printable tax folio invoice.
+- **My Bookings (`/my/bookings`)**: Instant display of new reservations across Upcoming, Past, and Cancelled tabs.
+- **Folio & Online Balance Settlement**: Detailed charge ledger and ability to settle balances online.
+- **Staff Tape Chart & Operations**: Full multi-room visual representation across the 14-day tape chart and front desk register.
