@@ -490,12 +490,12 @@
 - [x] Sticky price summary card on desktop / sticky bottom bar on mobile with live quote — verified: sticky FareBreakup sidebar computes live quote from backend /quote endpoint
 
 ### Phase 6: 3-Step Checkout Wizard (`/book`)
-- [ ] `BookingContext` with `sessionStorage` persistence
-- [ ] 3-step pill header: 1 Details, 2 Traveller Info, 3 Pay
-- [ ] Back exit confirmation modal ("You are about to book your stay...")
-- [ ] Step 1 Details review, inline edit, rate plan
-- [ ] Step 2 Traveller Info with myself/someone else, +91 phone, arrival window, special requests
-- [ ] Step 3 Pay with full/deposit/hotel options, demo UPI/Card/Netbanking, idempotency, atomic create
+- [x] `BookingContext` with `sessionStorage` persistence — verified: created `BookingContext.jsx` with sessionStorage sync
+- [x] 3-step pill header: 1 Details, 2 Traveller Info, 3 Pay — verified: Stepper with green checkmarks mounted
+- [x] Back exit confirmation modal ("You are about to book your stay...") — verified: BackConfirmModal prevents accidental exits
+- [x] Step 1 Details review, inline edit, rate plan — verified: stay dates, room specs, and rate plans interactive
+- [x] Step 2 Traveller Info with myself/someone else, +91 phone, arrival window, special requests — verified: full controlled form with client-side validation
+- [x] Step 3 Pay with full/deposit/hotel options, demo UPI/Card/Netbanking, idempotency, atomic create — verified: atomic reservation create and payment execution tested
 
 ### Phase 7: Success Page & Customer Area
 - [ ] `/booking/:id/success` with .ics calendar download, tax invoice button

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { RefreshProvider } from './context/RefreshContext'
+import { BookingProvider } from './context/BookingContext'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 import { AppLayout, PublicLayout } from './components/ui/Layout'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -57,8 +58,9 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <RefreshProvider>
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
+            <BookingProvider>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
               {/* Public routes */}
               <Route path="/" element={<PublicLayout><AvailabilityPage /></PublicLayout>} />
               <Route path="/search" element={<PublicLayout><SearchResultsPage /></PublicLayout>} />
@@ -230,6 +232,7 @@ export default function App() {
             <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
           </Routes>
         </Suspense>
+        </BookingProvider>
         </RefreshProvider>
       </ToastProvider>
     </AuthProvider>
