@@ -5,6 +5,7 @@ import { roomTypesApi } from '../api/roomTypes.api'
 import { useTitle } from '../hooks/useTitle'
 import SearchBar from '../components/search/SearchBar'
 import RangeSlider from '../components/ui/RangeSlider'
+import { SearchIcon, MaximizeIcon, BedIcon, UsersIcon, CheckIcon } from '../components/ui/Icons'
 import { formatINR, todayStr, daysFromTodayStr, computeNights } from '../utils/helpers'
 
 export default function SearchResultsPage() {
@@ -463,7 +464,9 @@ export default function SearchResultsPage() {
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🔍</div>
+                <div style={{ marginBottom: 12, color: '#9CA3AF' }}>
+                  <SearchIcon size={40} color="#9CA3AF" />
+                </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: 8 }}>
                   No room categories match your criteria
                 </h3>
@@ -565,13 +568,20 @@ export default function SearchResultsPage() {
                               alignItems: 'center',
                               gap: 12,
                               marginBottom: 12,
+                              flexWrap: 'wrap',
                             }}
                           >
-                            <span>📐 {rt.size ? `${rt.size} sq m` : '32 sq m'}</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <MaximizeIcon size={14} color="#6B7280" /> {rt.size ? `${rt.size} sq m` : '32 sq m'}
+                            </span>
                             <span>•</span>
-                            <span>🛏 {rt.bedType || 'King Bed'}</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <BedIcon size={14} color="#6B7280" /> {rt.bedType || 'King Bed'}
+                            </span>
                             <span>•</span>
-                            <span>👥 Max {rt.maxOccupancy || rt.capacity || 2} Guests</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <UsersIcon size={14} color="#6B7280" /> Max {rt.maxOccupancy || rt.capacity || 2} Guests
+                            </span>
                           </div>
 
                           <p
@@ -596,9 +606,12 @@ export default function SearchResultsPage() {
                                   fontSize: '0.75rem',
                                   padding: '2px 8px',
                                   borderRadius: 4,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
                                 }}
                               >
-                                ✓ {hl}
+                                <CheckIcon size={12} color="var(--color-primary)" /> {hl}
                               </span>
                             ))}
                           </div>
@@ -611,9 +624,12 @@ export default function SearchResultsPage() {
                             color: 'var(--color-success)',
                             fontWeight: 600,
                             marginTop: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
                           }}
                         >
-                          ✓ Free cancellation up to 48h before check-in
+                          <CheckIcon size={14} color="var(--color-success)" /> Free cancellation up to 48h before check-in
                         </div>
                       </div>
 

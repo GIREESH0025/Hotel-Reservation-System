@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DateRangePicker from './DateRangePicker'
 import GuestSelector from './GuestSelector'
+import { SearchIcon, CalendarIcon, UsersIcon } from '../ui/Icons'
 import { formatShortDate, todayStr, daysFromTodayStr, computeNights } from '../../utils/helpers'
 
 /**
@@ -137,7 +138,7 @@ export default function SearchBar({
             background: activePopover === 'type' ? '#F9FAFB' : 'transparent',
           }}
         >
-          <span style={{ fontSize: '1.25rem', color: '#6B7280' }}>🔍</span>
+          <SearchIcon size={20} color="#6B7280" />
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <span
               style={{
@@ -237,7 +238,7 @@ export default function SearchBar({
         >
           {/* Check in */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '1.25rem', color: '#6B7280' }}>📅</span>
+            <CalendarIcon size={20} color="#6B7280" />
             <div>
               <span style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280' }}>Check in</span>
               <span style={{ fontWeight: 700, color: '#111827', fontSize: '0.9375rem', whiteSpace: 'nowrap' }}>
@@ -265,7 +266,7 @@ export default function SearchBar({
 
           {/* Check out */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '1.25rem', color: '#6B7280' }}>📅</span>
+            <CalendarIcon size={20} color="#6B7280" />
             <div>
               <span style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280' }}>Check out</span>
               <span style={{ fontWeight: 700, color: '#111827', fontSize: '0.9375rem', whiteSpace: 'nowrap' }}>
@@ -300,7 +301,7 @@ export default function SearchBar({
             background: activePopover === 'guests' ? '#F9FAFB' : 'transparent',
           }}
         >
-          <span style={{ fontSize: '1.25rem', color: '#6B7280' }}>👥</span>
+          <UsersIcon size={20} color="#6B7280" />
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <span style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', whiteSpace: 'nowrap' }}>
               No. of rooms &amp; guests
@@ -374,11 +375,10 @@ export default function SearchBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.25rem',
                 boxShadow: '0 2px 8px rgba(214, 57, 65, 0.4)',
               }}
             >
-              🔍
+              <SearchIcon size={18} color="#FFFFFF" />
             </button>
           )}
         </div>

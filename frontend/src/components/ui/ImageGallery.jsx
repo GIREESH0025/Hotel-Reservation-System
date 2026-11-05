@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { CameraIcon } from './Icons'
 
 /**
  * 5-photo mosaic layout with Lightbox modal.
@@ -110,7 +111,9 @@ export default function ImageGallery({ images = [], alt = 'Room photo' }) {
                   cursor: 'pointer',
                 }}
               >
-                📷 View all photos
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <CameraIcon size={14} color="#111827" /> View all photos
+                </span>
               </button>
             )}
           </div>

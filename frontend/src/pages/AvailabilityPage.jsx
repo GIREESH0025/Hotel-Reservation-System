@@ -4,6 +4,7 @@ import { roomTypesApi } from '../api/roomTypes.api'
 import { useTitle } from '../hooks/useTitle'
 import { HOTEL_CONFIG } from '../config/hotel.config'
 import SearchBar from '../components/search/SearchBar'
+import { CheckIcon } from '../components/ui/Icons'
 import { formatINR, todayStr, daysFromTodayStr } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
 
@@ -54,24 +55,6 @@ export default function AvailabilityPage() {
         >
           {/* Left Column: Heading, Subtitle & Key Features */}
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: 'var(--color-primary, #D63941)',
-                  fontWeight: 700,
-                  background: '#FEE2E2',
-                  padding: '4px 12px',
-                  borderRadius: 20,
-                }}
-              >
-                ★ Est. 1924 · Waterfront Heritage · Colaba, Mumbai
-              </span>
-            </div>
-
             <h1
               style={{
                 fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
@@ -101,13 +84,13 @@ export default function AvailabilityPage() {
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
-                <span style={{ color: 'var(--color-primary, #D63941)' }}>✓</span> Historic Colaba Waterfront
+                <CheckIcon size={16} color="var(--color-primary, #D63941)" /> Historic Colaba Waterfront
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
-                <span style={{ color: 'var(--color-primary, #D63941)' }}>✓</span> 24hr Front Desk &amp; Concierge
+                <CheckIcon size={16} color="var(--color-primary, #D63941)" /> 24hr Front Desk &amp; Concierge
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
-                <span style={{ color: 'var(--color-primary, #D63941)' }}>✓</span> Best Direct Tariff Guarantee
+                <CheckIcon size={16} color="var(--color-primary, #D63941)" /> Best Direct Tariff Guarantee
               </div>
             </div>
           </div>
@@ -354,12 +337,15 @@ export default function AvailabilityPage() {
                               background: '#F3F4F6',
                               color: '#374151',
                               fontSize: '0.75rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
                               padding: '3px 8px',
                               borderRadius: 6,
                               fontWeight: 500,
                             }}
                           >
-                            ✓ {hl}
+                            <CheckIcon size={12} color="var(--color-primary)" /> {hl}
                           </span>
                         ))}
                       </div>
@@ -427,7 +413,9 @@ export default function AvailabilityPage() {
                   boxShadow: 'var(--shadow-sm)',
                 }}
               >
-                <div style={{ fontSize: '1.25rem', marginBottom: 8 }}>✨</div>
+                <div style={{ color: 'var(--color-primary, #D63941)', marginBottom: 8 }}>
+                  <CheckIcon size={20} color="var(--color-primary, #D63941)" />
+                </div>
                 <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#111827', marginBottom: 4 }}>
                   {item.name}
                 </div>

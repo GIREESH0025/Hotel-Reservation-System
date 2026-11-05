@@ -142,15 +142,34 @@ const createReservation = asyncHandler(async (req, res) => {
     guestId = ownGuest._id.toString();
 
     // Customers cannot book in the past
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const checkInDate = new Date(req.body.checkIn); checkInDate.setHours(0, 0, 0, 0);
-    if (checkInDate < today) {
+    const today = new Date();
+    const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    const checkInDate = new Date(req.body.checkIn);
+    const checkInUTC = new Date(Date.UTC(checkInDate.getUTCFullYear(), checkInDate.getUTCMonth(), checkInDate.getUTCDate()));
+    if (checkInUTC < todayUTC) {
       return res.status(400).json({
         success: false,
         message: 'You cannot create a reservation with a past check-in date.',
         errors: [{ field: 'checkIn', message: 'Check-in date cannot be in the past' }],
       });
     }
+  }
+
+  // Auto-resolve guest from guestSnapshot if not provided (e.g. staff booking via public flow)
+  if (!guestId && req.body.guestSnapshot) {
+    const guestName = req.body.guestSnapshot.fullName || req.body.guestSnapshot.name || req.user.name || 'Guest';
+    const guestEmail = req.body.guestSnapshot.email || req.user.email;
+    const guestPhone = req.body.guestSnapshot.phone || req.user.phone || '';
+    let foundGuest = await Guest.findOne({ email: { $regex: new RegExp(`^${guestEmail}$`, 'i') } });
+    if (!foundGuest) {
+      foundGuest = await Guest.create({
+        fullName: guestName,
+        phone: guestPhone,
+        email: guestEmail,
+        user: req.user.id,
+      });
+    }
+    guestId = foundGuest._id.toString();
   }
 
   if (!guestId) {

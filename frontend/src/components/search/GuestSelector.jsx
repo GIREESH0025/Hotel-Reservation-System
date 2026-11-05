@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import { DoorIcon, TrashIcon, UsersIcon, ChildIcon } from '../ui/Icons'
 
 /**
  * Guest & Room selector popover matching reference UI (Attachment #3).
@@ -97,7 +98,7 @@ export default function GuestSelector({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: '1.25rem', color: '#4B5563' }}>🚪</span>
+          <DoorIcon size={20} color="#4B5563" />
           <div>
             <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem' }}>Rooms</div>
           </div>
@@ -132,7 +133,7 @@ export default function GuestSelector({
               justifyContent: 'center',
             }}
           >
-            {rooms <= 1 ? '🗑' : '−'}
+            {rooms <= 1 ? <TrashIcon size={14} color="#FDA4AF" /> : '−'}
           </button>
           <span style={{ width: 28, textAlign: 'center', fontWeight: 600, color: '#111827' }}>
             {rooms}
@@ -171,7 +172,7 @@ export default function GuestSelector({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: '1.25rem', color: '#4B5563' }}>👥</span>
+          <UsersIcon size={20} color="#4B5563" />
           <div>
             <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem' }}>Adults</div>
             <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>18 years & above</div>
@@ -239,7 +240,7 @@ export default function GuestSelector({
       <div style={{ padding: '16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: '1.25rem', color: '#4B5563' }}>👶</span>
+            <ChildIcon size={20} color="#4B5563" />
             <div>
               <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem' }}>Children</div>
               <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>0-17 years</div>

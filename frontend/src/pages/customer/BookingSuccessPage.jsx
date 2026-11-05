@@ -4,6 +4,7 @@ import { reservationsApi } from '../../api/reservations.api'
 import { useTitle } from '../../hooks/useTitle'
 import { HOTEL_CONFIG } from '../../config/hotel.config'
 import { formatINR, formatLongDate, formatISODate } from '../../utils/helpers'
+import { CalendarIcon, CheckIcon } from '../../components/ui/Icons'
 import { useToast } from '../../context/ToastContext'
 
 export default function BookingSuccessPage() {
@@ -267,7 +268,7 @@ export default function BookingSuccessPage() {
                 gap: 8,
               }}
             >
-              📅 Add to Calendar (.ics)
+              <CalendarIcon size={16} color="#111827" /> Add to Calendar (.ics)
             </button>
 
             <Link

@@ -5,6 +5,11 @@ const { z } = require('zod');
 const dateString = z.string().refine((s) => !isNaN(Date.parse(s)), { message: 'Invalid date format. Use YYYY-MM-DD.' })
   .transform((s) => new Date(s));
 
+const childSchema = z.union([
+  z.object({ age: z.number().int().min(0).max(17) }),
+  z.number().int().min(0).max(17).transform((n) => ({ age: n })),
+]);
+
 const createReservationSchema = z.object({
   guestId: z.string().min(1, 'Guest ID is required').optional(), // optional for customers (auto-resolved)
   roomId: z.string().optional(),
@@ -15,11 +20,12 @@ const createReservationSchema = z.object({
   checkIn: dateString,
   checkOut: dateString,
   adults: z.number({ required_error: 'Number of adults is required' }).int().min(1).max(30),
-  children: z.array(z.object({ age: z.number().int().min(0).max(17) })).optional().default([]),
+  children: z.array(childSchema).optional().default([]),
   ratePlan: z.enum(['room_only', 'with_breakfast']).optional().default('room_only'),
   couponCode: z.string().trim().optional(),
   guestSnapshot: z.object({
     name: z.string().optional(),
+    fullName: z.string().optional(),
     email: z.string().optional(),
     phone: z.string().optional(),
   }).optional(),
@@ -49,7 +55,7 @@ const quoteSchema = z.object({
   checkOut: dateString,
   rooms: z.number().int().min(1).max(3).optional().default(1),
   adults: z.number().int().min(1).max(30).optional().default(2),
-  children: z.array(z.object({ age: z.number().int().min(0).max(17) })).optional().default([]),
+  children: z.array(childSchema).optional().default([]),
   ratePlan: z.enum(['room_only', 'with_breakfast']).optional().default('room_only'),
   couponCode: z.string().trim().optional(),
 }).refine((d) => d.checkOut > d.checkIn, {

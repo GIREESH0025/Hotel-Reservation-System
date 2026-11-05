@@ -7,6 +7,7 @@ import { useTitle } from '../hooks/useTitle'
 import { HOTEL_CONFIG } from '../config/hotel.config'
 import ImageGallery from '../components/ui/ImageGallery'
 import FareBreakup from '../components/ui/FareBreakup'
+import { MapPinIcon, MaximizeIcon, BedIcon, UsersIcon, CheckIcon } from '../components/ui/Icons'
 import { formatINR, formatShortDate, todayStr, daysFromTodayStr, computeNights } from '../utils/helpers'
 
 const TABS = [
@@ -266,14 +267,22 @@ export default function RoomTypeDetailPage() {
             </span>
           </div>
 
-          <div style={{ fontSize: '0.875rem', color: '#4B5563', display: 'flex', gap: 16, alignItems: 'center' }}>
-            <span>📍 {HOTEL_CONFIG.area}</span>
+          <div style={{ fontSize: '0.875rem', color: '#4B5563', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <MapPinIcon size={14} color="#6B7280" /> {HOTEL_CONFIG.area}
+            </span>
             <span>•</span>
-            <span>📐 {roomType.size ? `${roomType.size} sq m` : '38 sq m'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <MaximizeIcon size={14} color="#6B7280" /> {roomType.size ? `${roomType.size} sq m` : '38 sq m'}
+            </span>
             <span>•</span>
-            <span>🛏 {roomType.bedType || 'King Bed'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <BedIcon size={14} color="#6B7280" /> {roomType.bedType || 'King Bed'}
+            </span>
             <span>•</span>
-            <span>👥 Up to {roomType.maxOccupancy || roomType.capacity || 2} Guests</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <UsersIcon size={14} color="#6B7280" /> Up to {roomType.maxOccupancy || roomType.capacity || 2} Guests
+            </span>
           </div>
         </div>
 
@@ -365,7 +374,9 @@ export default function RoomTypeDetailPage() {
                       borderRadius: 20,
                     }}
                   >
-                    ✓ {hl}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <CheckIcon size={12} color="var(--color-primary)" /> {hl}
+                    </span>
                   </span>
                 ))}
               </div>
