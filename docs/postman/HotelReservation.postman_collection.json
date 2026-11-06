@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "hrh-postman-coll-001",
     "name": "Harbour Row Hotel Reservation API",
-    "description": "Comprehensive Postman collection for Harbour Row Hotel Reservation System (Project #8 MERN). Includes automated token extraction, auth tests, CRUD requests, overlap verification, and reports.",
+    "description": "Comprehensive Postman collection for Harbour Row Hotel Reservation System (Project #8 MERN). Includes automated token extraction, dynamic ID chaining, auth tests, CRUD requests, quote calculation, and reports.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -27,24 +27,27 @@
           "host": ["{{baseUrl}}"],
           "path": ["health"]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Health status 200 OK\", () => {",
+              "    pm.response.to.have.status(200);",
+              "    const res = pm.response.json();",
+              "    pm.expect(res.success).to.be.true;",
+              "    pm.expect(res.status).to.eql(\"ok\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "1. Authentication",
       "item": [
-        {
-          "name": "Register Customer",
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Aarav Mehta\",\n  \"email\": \"aarav@example.com\",\n  \"password\": \"Guest@1234\",\n  \"phone\": \"+91 98123 45678\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
-          }
-        },
         {
           "name": "Login (Admin) - Stores Token",
           "event": [
@@ -52,11 +55,14 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.data && res.data.token) {",
+                  "pm.test(\"Admin login 200 OK and token saved\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.token).to.be.a(\"string\");",
                   "    pm.environment.set(\"token\", res.data.token);",
-                  "    console.log(\"Saved JWT token to environment\");",
-                  "}"
+                  "    pm.environment.set(\"adminToken\", res.data.token);",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -74,16 +80,41 @@
           }
         },
         {
+          "name": "Get Profile (Me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Profile 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.email).to.eql(pm.environment.get(\"adminEmail\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
           "name": "Login (Staff)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.data && res.data.token) {",
-                  "    pm.environment.set(\"token\", res.data.token);",
-                  "}"
+                  "pm.test(\"Staff login 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data.user.role).to.eql(\"receptionist\");",
+                  "    pm.environment.set(\"staffToken\", res.data.token);",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -107,10 +138,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.data && res.data.token) {",
-                  "    pm.environment.set(\"token\", res.data.token);",
-                  "}"
+                  "pm.test(\"Customer login 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data.user.role).to.eql(\"customer\");",
+                  "    pm.environment.set(\"customerToken\", res.data.token);",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -128,17 +161,32 @@
           }
         },
         {
-          "name": "Get Profile (Me)",
+          "name": "Register Customer (Unique)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Register returns 201 Created\", () => {",
+                  "    pm.response.to.have.status(201);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.user.role).to.eql(\"customer\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
-            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
-          }
-        },
-        {
-          "name": "Logout",
-          "request": {
+            "auth": { "type": "noauth" },
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Guest\",\n  \"email\": \"testguest_{{$timestamp}}@example.com\",\n  \"password\": \"Guest@1234\",\n  \"phone\": \"+91 98000 11223\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
           }
         }
       ]
@@ -148,6 +196,24 @@
       "item": [
         {
           "name": "List Room Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Room types list 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "    if (res.data.length > 0) {",
+                  "        pm.environment.set(\"roomTypeId\", res.data[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/room-types", "host": ["{{baseUrl}}"], "path": ["room-types"] }
@@ -155,39 +221,50 @@
         },
         {
           "name": "Get Room Type by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get room type 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data._id).to.eql(pm.environment.get(\"roomTypeId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/room-types/{{roomTypeId}}", "host": ["{{baseUrl}}"], "path": ["room-types", "{{roomTypeId}}"] }
           }
         },
         {
-          "name": "Create Room Type (Admin)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Executive Penthouse\",\n  \"description\": \"Top-floor suite with private terrace and butler.\",\n  \"baseRate\": 25000,\n  \"capacity\": 4,\n  \"amenities\": [\"Wi-Fi\", \"Air Conditioning\", \"Private Pool\", \"Terrace\", \"Smart TV\"]\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/room-types", "host": ["{{baseUrl}}"], "path": ["room-types"] }
-          }
-        },
-        {
           "name": "Update Room Type (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Update room type 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"baseRate\": 27000\n}"
+              "raw": "{\n  \"description\": \"Updated luxury room type description with fine amenities.\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/room-types/{{roomTypeId}}", "host": ["{{baseUrl}}"], "path": ["room-types", "{{roomTypeId}}"] }
-          }
-        },
-        {
-          "name": "Delete Room Type (Admin)",
-          "request": {
-            "method": "DELETE",
             "url": { "raw": "{{baseUrl}}/room-types/{{roomTypeId}}", "host": ["{{baseUrl}}"], "path": ["room-types", "{{roomTypeId}}"] }
           }
         }
@@ -198,6 +275,22 @@
       "item": [
         {
           "name": "Search Availability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Availability search 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": {
@@ -214,6 +307,24 @@
         },
         {
           "name": "List All Rooms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"List rooms 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "    if (res.data.length > 0) {",
+                  "        pm.environment.set(\"roomId\", res.data[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/rooms?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["rooms"] }
@@ -221,39 +332,23 @@
         },
         {
           "name": "Get Room by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get room 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data._id).to.eql(pm.environment.get(\"roomId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/rooms/{{roomId}}", "host": ["{{baseUrl}}"], "path": ["rooms", "{{roomId}}"] }
-          }
-        },
-        {
-          "name": "Create Room (Admin)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"801\",\n  \"floor\": 8,\n  \"roomType\": \"{{roomTypeId}}\",\n  \"status\": \"active\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/rooms", "host": ["{{baseUrl}}"], "path": ["rooms"] }
-          }
-        },
-        {
-          "name": "Toggle Maintenance Status",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"maintenance\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/rooms/{{roomId}}", "host": ["{{baseUrl}}"], "path": ["rooms", "{{roomId}}"] }
-          }
-        },
-        {
-          "name": "Delete Room (Admin)",
-          "request": {
-            "method": "DELETE",
             "url": { "raw": "{{baseUrl}}/rooms/{{roomId}}", "host": ["{{baseUrl}}"], "path": ["rooms", "{{roomId}}"] }
           }
         }
@@ -264,6 +359,24 @@
       "item": [
         {
           "name": "List Guests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"List guests 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "    if (res.data.length > 0) {",
+                  "        pm.environment.set(\"guestId\", res.data[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/guests?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["guests"] }
@@ -271,6 +384,21 @@
         },
         {
           "name": "Get Guest by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get guest 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data._id).to.eql(pm.environment.get(\"guestId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/guests/{{guestId}}", "host": ["{{baseUrl}}"], "path": ["guests", "{{guestId}}"] }
@@ -278,35 +406,86 @@
         },
         {
           "name": "Create Guest",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Create guest 201 Created\", () => {",
+                  "    pm.response.to.have.status(201);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Dr. Vikram Sengupta\",\n  \"phone\": \"+91 99000 88776\",\n  \"email\": \"vikram.sengupta@example.com\",\n  \"idProof\": \"Passport: K9876543\"\n}"
+              "raw": "{\n  \"fullName\": \"Dr. Vikram Sengupta\",\n  \"phone\": \"+91 99000 88776\",\n  \"email\": \"vikram_{{$timestamp}}@example.com\",\n  \"idProof\": \"Passport: K9876543\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/guests", "host": ["{{baseUrl}}"], "path": ["guests"] }
-          }
-        },
-        {
-          "name": "Update Guest",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"+91 99000 99887\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/guests/{{guestId}}", "host": ["{{baseUrl}}"], "path": ["guests", "{{guestId}}"] }
           }
         }
       ]
     },
     {
-      "name": "5. Reservations",
+      "name": "5. Reservations & Quotes",
       "item": [
         {
+          "name": "Compute Stay Quote (Authoritative)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Quote calculation 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.totalPayable).to.be.a(\"number\");",
+                  "    pm.expect(res.data.taxAmount).to.be.a(\"number\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomTypeId\": \"{{roomTypeId}}\",\n  \"checkIn\": \"2026-12-10\",\n  \"checkOut\": \"2026-12-13\",\n  \"adults\": 2,\n  \"roomsCount\": 1,\n  \"ratePlan\": \"room_only\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reservations/quote", "host": ["{{baseUrl}}"], "path": ["reservations", "quote"] }
+          }
+        },
+        {
           "name": "List Reservations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"List reservations 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "    if (res.data.length > 0) {",
+                  "        pm.environment.set(\"reservationId\", res.data[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/reservations?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["reservations"] }
@@ -314,65 +493,43 @@
         },
         {
           "name": "Get Reservation (with Folio Balance)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get reservation 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data._id).to.eql(pm.environment.get(\"reservationId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}"] }
           }
         },
         {
-          "name": "Create Reservation",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"guestId\": \"{{guestId}}\",\n  \"roomId\": \"{{roomId}}\",\n  \"checkIn\": \"2026-12-10\",\n  \"checkOut\": \"2026-12-14\",\n  \"adults\": 2,\n  \"notes\": \"High floor requested, late arrival after 8 PM.\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/reservations", "host": ["{{baseUrl}}"], "path": ["reservations"] }
-          }
-        },
-        {
-          "name": "Confirm Reservation",
-          "request": {
-            "method": "PATCH",
-            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/confirm", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "confirm"] }
-          }
-        },
-        {
-          "name": "Check-In Guest",
-          "request": {
-            "method": "PATCH",
-            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/check-in", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "check-in"] }
-          }
-        },
-        {
-          "name": "Check-Out Guest (Fails if balance > 0)",
-          "request": {
-            "method": "PATCH",
-            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/check-out", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "check-out"] }
-          }
-        },
-        {
-          "name": "Cancel Reservation",
-          "request": {
-            "method": "PATCH",
-            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/cancel", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "cancel"] }
-          }
-        },
-        {
-          "name": "Customer Pay Online (Deposit / Balance / Full)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"amountType\": \"deposit\",\n  \"method\": \"demo_online\",\n  \"idempotencyKey\": \"demo-key-12345\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/pay", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "pay"] }
-          }
-        },
-        {
           "name": "Get Folio Tax Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get folio tax invoice 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data.invoiceNumber).to.be.a(\"string\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/reservations/{{reservationId}}/invoice", "host": ["{{baseUrl}}"], "path": ["reservations", "{{reservationId}}", "invoice"] }
@@ -385,28 +542,49 @@
       "item": [
         {
           "name": "List Payments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"List payments 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "    if (res.data.length > 0) {",
+                  "        pm.environment.set(\"paymentId\", res.data[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/payments?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["payments"] }
           }
         },
         {
-          "name": "Record Payment",
+          "name": "Get Payment by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get payment 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data._id).to.eql(pm.environment.get(\"paymentId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reservationId\": \"{{reservationId}}\",\n  \"amount\": 5000,\n  \"method\": \"card\",\n  \"reference\": \"AUTH-987654\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/payments", "host": ["{{baseUrl}}"], "path": ["payments"] }
-          }
-        },
-        {
-          "name": "Refund Payment (Admin)",
-          "request": {
-            "method": "PATCH",
-            "url": { "raw": "{{baseUrl}}/payments/{{paymentId}}/refund", "host": ["{{baseUrl}}"], "path": ["payments", "{{paymentId}}", "refund"] }
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["payments", "{{paymentId}}"] }
           }
         }
       ]
@@ -416,6 +594,22 @@
       "item": [
         {
           "name": "Today Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Today summary 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.have.property(\"arrivals\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/reports/summary", "host": ["{{baseUrl}}"], "path": ["reports", "summary"] }
@@ -423,6 +617,22 @@
         },
         {
           "name": "Revenue Aggregation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Revenue report 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res).to.have.property(\"totalRevenue\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": {
@@ -438,6 +648,21 @@
         },
         {
           "name": "Chamber Occupancy by Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Occupancy report 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/reports/occupancy", "host": ["{{baseUrl}}"], "path": ["reports", "occupancy"] }
@@ -450,32 +675,72 @@
       "item": [
         {
           "name": "List Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"List users 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data).to.be.an(\"array\");",
+                  "    if (res.data.length > 0) {",
+                  "        pm.environment.set(\"userId\", res.data[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": { "raw": "{{baseUrl}}/users?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["users"] }
           }
         },
         {
-          "name": "Change User Role",
+          "name": "Get User by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get user 200 OK\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.data._id).to.eql(pm.environment.get(\"userId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"role\": \"receptionist\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
-          }
-        },
-        {
-          "name": "Delete User",
-          "request": {
-            "method": "DELETE",
+            "method": "GET",
             "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
           }
         }
       ]
+    },
+    {
+      "name": "9. Logout",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Logout 200 OK\", () => {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+      }
     }
   ]
 }
-
