@@ -63,13 +63,13 @@ git push -u origin main
    JWT_SECRET       = <generate with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">
    JWT_EXPIRES_IN   = 7d
    NODE_ENV         = production
-   CLIENT_ORIGIN    = https://your-netlify-app.netlify.app
+   CLIENT_ORIGIN    = https://harbourhotel.netlify.app
    AUTH_RATE_LIMIT  = 20
    PORT             = 10000
    ```
 
 5. Click **Create Web Service** — wait for the first deploy to complete
-6. Test: visit `https://harbour-row-backend.onrender.com/health`
+6. Test: visit `https://hotel-reservation-system-qamu.onrender.com/health`
    - Expected: `{"success":true,"status":"ok",...}`
 
 > **Note on Render free tier**: The service sleeps after 15 minutes of inactivity.
@@ -106,7 +106,7 @@ This creates demo accounts:
 
 4. Set Environment Variables (under **Site settings > Environment variables**):
    ```
-   VITE_API_URL    = https://harbour-row-backend.onrender.com/api/v1
+   VITE_API_URL    = https://hotel-reservation-system-qamu.onrender.com/api/v1
    VITE_BRAND_NAME = Harbour Row Hotel
    ```
 
@@ -122,10 +122,10 @@ This creates demo accounts:
 
 ## Step 6: Update CORS on Render
 
-After getting your Netlify URL (e.g., `https://harbour-row-hotel.netlify.app`):
+After getting your Netlify URL (e.g., `https://harbourhotel.netlify.app`):
 
 1. Go to your Render backend service → **Environment**
-2. Update: `CLIENT_ORIGIN = https://harbour-row-hotel.netlify.app`
+2. Update: `CLIENT_ORIGIN = https://harbourhotel.netlify.app`
 3. Click **Save changes** — Render will redeploy automatically
 
 ---
@@ -143,12 +143,12 @@ After getting your Netlify URL (e.g., `https://harbour-row-hotel.netlify.app`):
 
 ## Step 8: Submission Artefacts
 
-- [ ] **GitHub repo URL**: `https://github.com/<username>/hotel-reservation-system`
-- [ ] **Frontend URL**: `https://harbour-row-hotel.netlify.app`
-- [ ] **Backend URL**: `https://harbour-row-backend.onrender.com`
-- [ ] **Postman collection**: in `docs/postman/`
-- [ ] **Demo credentials**: in `README.md`
-- [ ] **ER diagram**: in `docs/er-diagram.md`
+- [x] **GitHub repo URL**: `https://github.com/GIREESH0025/Hotel-Reservation-System`
+- [x] **Frontend URL**: `https://harbourhotel.netlify.app`
+- [x] **Backend URL**: `https://hotel-reservation-system-qamu.onrender.com`
+- [x] **Postman collection**: in `docs/postman/`
+- [x] **Demo credentials**: in `README.md`
+- [x] **ER diagram**: in `docs/er-diagram.md`
 - [ ] **Screenshots**: take and include in `docs/screenshots/`
 - [ ] **Demo video**: record 2-3 minute walkthrough (login as each role, show key flows)
 

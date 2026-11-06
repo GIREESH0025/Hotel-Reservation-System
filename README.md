@@ -16,9 +16,9 @@
 
 | Service | Environment | Status | URL |
 |---|---|:---:|---|
-| **Frontend Web App** | Netlify / Vercel | Production | `https://<your-frontend>.netlify.app` *(or `http://localhost:5173` local)* |
-| **Backend REST API** | Render | Production | `https://<your-backend>.onrender.com/api/v1` *(or `http://localhost:5000/api/v1` local)* |
-| **API Health Check** | Render | Production | `https://<your-backend>.onrender.com/api/v1/health` |
+| **Frontend Web App** | Netlify | Production | [https://harbourhotel.netlify.app](https://harbourhotel.netlify.app) |
+| **Backend REST API** | Render | Production | [https://hotel-reservation-system-qamu.onrender.com/api/v1](https://hotel-reservation-system-qamu.onrender.com/api/v1) |
+| **API Health Check** | Render | Production | [https://hotel-reservation-system-qamu.onrender.com/api/health](https://hotel-reservation-system-qamu.onrender.com/api/health) |
 
 ---
 
@@ -32,20 +32,14 @@
 
 ---
 
-## 📋 Evaluation Rubric Traceability (100 Marks Total)
+## ✨ Key System Capabilities & Architecture
 
-| Rubric Area | Marks | Implementation & Engineering Highlights | Verification Evidence |
-|---|:---:|---|---|
-| **React Structure & Routing** | **15** | Modular React 19 + Vite architecture; clean route tree in `App.jsx`; role-based route guard in `ProtectedRoute.jsx` handling loading skeletons, unauthenticated redirects, and role-based 403 access; shared UI component library. | `npm run build --prefix frontend` passes cleanly in 1.98s; zero console warnings. |
-| **Forms & Validation** | **10** | 100% controlled form fields using React state; every form handler calls `e.preventDefault()`; zero uncontrolled `defaultValue` attributes; client-side regex helpers + inline validation messages with ARIA accessibility. | Checked with `git grep defaultValue frontend/src` (0 hits); 15/15 forms validated. |
-| **Context API & Auth Flow** | **10** | Strictly zero banned state management libraries (no Redux, Zustand, Recoil, or React Query); state shared purely via React Context API (`AuthContext`, `ToastContext`, `RefreshContext`, `BookingContext`); persistent JWT session with `/auth/me` restoration and 401 interceptor logout. | Checked package manifests; 0 banned libraries; reactive multi-tab updates verified. |
-| **Express Architecture** | **15** | Strict separation of concerns into `routes/`, `controllers/`, `middleware/`, `services/`, `models/`, `validators/`, and `config/`; routes contain zero business logic; business rules reside in dedicated service layers; centralized error middleware. | Modular structure; all asynchronous operations wrapped in `asyncHandler`. |
-| **REST API Features** | **15** | Complete REST CRUD APIs for User, Room, RoomType, Reservation, Guest, Payment; search, faceted filters, sorting, and pagination across all lists; server-authoritative `/reservations/quote`; atomic overlap prevention. | 27/27 automated Postman tests passing via Newman CLI with 100% assertions green. |
-| **Mongoose Design** | **10** | 6 Mongoose models (`User`, `Room`, `RoomType`, `Reservation`, `Guest`, `Payment`) with strict validation rules, enum guards, and timestamps; compound multikey indexes; connection lifecycle in `config/db.js`; idempotent seed script. | 40 rooms, 6 room types, 30 guests, 90 non-overlapping reservations seeded. |
-| **Authentication & Security** | **10** | Bcrypt password hashing with cost factor 12; `password` marked `select:false` and deleted in `toJSON`; JWT secret strictly from environment; generic login errors; registration locked to `customer`; role mutation locked to `admin`; Helmet, CORS allowlist, auth rate limiter; IDOR protection verified. | 40/40 automated backend unit & integration tests passing (`npm test --prefix backend`). |
-| **UI & Responsiveness** | **5** | Responsive across mobile (360px), tablet (768px), and desktop (1440px); WCAG AA contrast compliance; dual-month range picker; visual 14-day tape chart; exactly one high-resolution photo per chamber; browser autofill protection lock. | Verified with browser viewport testing; clean typography and layout tokens. |
-| **Deployment Readiness** | **5** | Step-by-step instructions in `DEPLOY.md`; Render backend build configuration; Netlify SPA fallback `_redirects` in build output; MongoDB Atlas network whitelist guide. | `frontend/dist/_redirects` verified; health check endpoint `/api/v1/health` active. |
-| **Git & Documentation** | **5** | Clean GitHub repository structure with separate `frontend/` and `backend/` directories; suitable `.gitignore`; clear commit messages; complete ER diagram; Postman collection; video recording demo script. | Clean git working tree; `docs/` folder complete. |
+- **Role-Based Access Control**: Tailored workflows and navigation guards for **Admin**, **Receptionist**, and **Customer** roles, with automated redirects and forbidden (`403`) view boundaries.
+- **Controlled React State**: 100% controlled form elements (`e.preventDefault()`, controlled inputs) with zero third-party global state libraries—shared exclusively via the native **React Context API** (`AuthContext`, `ToastContext`, `RefreshContext`, `BookingContext`).
+- **Atomic Booking Engine**: Server-authoritative overlap prevention supporting single and multi-room reservations, same-day check-in/turnovers, and status transitions (`pending`, `confirmed`, `checked_in`, `checked_out`, `cancelled`, `no_show`).
+- **Billing, Invoicing & Folios**: Authoritative quote engine calculating Indian GST slabs (12% / 18%), breakfast tariffs, and coupon codes; itemized folio tax invoices; checkout balance validation preventing checkout with unpaid charges.
+- **Robust Mongoose Architecture**: 6 strictly typed Mongoose models (`User`, `RoomType`, `Room`, `Guest`, `Reservation`, `Payment`) with compound indexes, timestamps, and active status tracking connected to **MongoDB Atlas**.
+- **Production Security Hygiene**: Bcrypt password hashing (cost factor 12), JWT authentication with environment secret, password exclusion (`select:false`), Helmet HTTP security headers, CORS allowlist, and rate limiting on authentication routes.
 
 ---
 
@@ -251,9 +245,7 @@ Hotel Reservation System/
 │   └── package.json
 ├── docs/
 │   ├── postman/             Postman collection & environment JSON
-│   ├── screenshots/         Screenshot guide for rubric submission
-│   ├── AUDIT-FINAL.md       Comprehensive pre-submission rubric evaluation audit
-│   ├── DEMO-SCRIPT.md       3-minute video presentation click-path and voiceover script
+│   ├── screenshots/         UI screenshot documentation
 │   └── er-diagram.md        Standalone Entity-Relationship documentation
 ├── DEPLOY.md                Step-by-step production deployment guide for Render, Netlify, and Atlas
 ├── .gitignore               Git ignore configuration (protects node_modules, .env, dist, logs)
@@ -274,7 +266,7 @@ cd backend
 cp .env.example .env
 # Fill in your MONGODB_URI and JWT_SECRET in .env
 npm install
-npm run seed       # Seeds 40 rooms, 6 room types, 30 guests, and 90 reservations
+npm run seed       # Seeds 40 rooms, 6 room types, 30 guests, and 30 reservations
 npm run dev        # Starts backend API on http://localhost:5000
 ```
 
@@ -317,6 +309,19 @@ Detailed, step-by-step instructions for deploying to **MongoDB Atlas**, **Render
 
 ---
 
-## 🎥 Video Demonstration
+## 🎥 Video Demonstration Guide
 
-A complete, 3-minute click-by-click walkthrough script with voiceover timing is provided in [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) to record the required video presentation covering all rubric requirements.
+For the required 2-3 minute demonstration video, follow this recommended walkthrough flow:
+1. **Public & Customer Flow**:
+   - Browse room types on the homepage and view high-resolution specifications.
+   - Run a live availability search using the dual-month calendar.
+   - Log in as Customer (`rahul@example.com` / `Guest@1234`), complete a 3-step booking with a deposit payment, and view the generated booking in **My Bookings**.
+   - Open and print the itemized Folio Tax Invoice.
+2. **Operations & Front Desk Flow**:
+   - Log in as Front Desk (`priya@harbourrow.com` / `Staff@1234`).
+   - Navigate to the **Tape Chart** to demonstrate the 14-day visual room occupancy matrix.
+   - Process an arrival check-in and demonstrate that check-out is blocked if an outstanding balance exists.
+3. **Administration & Analytics Flow**:
+   - Log in as Administrator (`admin@harbourrow.com` / `Admin@1234`).
+   - Review the **Summary Dashboard**, **Revenue Period Aggregation**, and **Chamber Occupancy** analytics.
+   - Demonstrate user management and room inventory controls.
