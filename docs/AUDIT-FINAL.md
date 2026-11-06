@@ -237,5 +237,6 @@ git grep -i -E "booking\.com|agoda|makemytrip|trivago|expedia|airbnb" -- fronten
    - Add env var: `VITE_API_URL=https://<your-backend>.onrender.com/api/v1`.
 5. **CORS Alignment**: Update `CLIENT_ORIGIN` on Render to match your exact Netlify domain, then redeploy backend.
 6. **Live URL Verification**: Open live Netlify URL in an incognito window: test login (`rahul@example.com` / `Guest@1234`), make a reservation, and test deep-link page refresh.
-7. **Record Video & Take Screenshots**: Follow `DEMO-SCRIPT.md` to record the 3-minute demo video and save screenshots into `docs/screenshots/`.
+7. **Record Video & Take Screenshots**: Follow [`docs/DEMO-SCRIPT.md`](DEMO-SCRIPT.md) to record the 3-minute demo video and save screenshots into `docs/screenshots/`.
 8. **Submit**: Submit GitHub repository link, live frontend URL, backend API URL, and demo video.
+
