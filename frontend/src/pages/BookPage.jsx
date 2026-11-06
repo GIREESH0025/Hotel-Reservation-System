@@ -1007,8 +1007,9 @@ export default function BookPage() {
                             </label>
                             <input
                               type="text"
-                              defaultValue="4111 2222 3333 4444"
+                              value="4111 2222 3333 4444"
                               readOnly
+                              onChange={() => {}}
                               style={{ width: '100%', background: '#F3F4F6' }}
                             />
                           </div>
@@ -1019,8 +1020,9 @@ export default function BookPage() {
                               </label>
                               <input
                                 type="text"
-                                defaultValue="12/28"
+                                value="12/28"
                                 readOnly
+                                onChange={() => {}}
                                 style={{ width: '100%', background: '#F3F4F6' }}
                               />
                             </div>
@@ -1030,8 +1032,9 @@ export default function BookPage() {
                               </label>
                               <input
                                 type="password"
-                                defaultValue="***"
+                                value="***"
                                 readOnly
+                                onChange={() => {}}
                                 style={{ width: '100%', background: '#F3F4F6' }}
                               />
                             </div>
