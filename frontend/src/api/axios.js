@@ -4,7 +4,7 @@ const BRAND_NAME = import.meta.env.VITE_BRAND_NAME || 'Harbour Row Hotel'
 export { BRAND_NAME }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })
