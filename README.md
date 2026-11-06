@@ -7,7 +7,6 @@
 [![Tests](https://img.shields.io/badge/Tests-40%2F40%20Passing-brightgreen)](backend/tests/)
 [![Newman API](https://img.shields.io/badge/Postman-27%2F27%20Passing-orange?logo=postman&logoColor=white)](docs/postman/)
 
-> **Project #8 — MERN Full Stack Hotel Reservation System**  
 > A production-ready hotel reservation and property management platform built on the MERN stack. Designed with role-based access control (Admin, Receptionist, Customer), atomic overlap-prevention booking transactions, server-authoritative GST pricing calculation, dual-month calendar search, 14-day operations tape chart, and a 3-step checkout wizard.
 
 ---
@@ -247,7 +246,6 @@ Hotel Reservation System/
 │   ├── postman/             Postman collection & environment JSON
 │   ├── screenshots/         UI screenshot documentation
 │   └── er-diagram.md        Standalone Entity-Relationship documentation
-├── DEPLOY.md                Step-by-step production deployment guide for Render, Netlify, and Atlas
 ├── .gitignore               Git ignore configuration (protects node_modules, .env, dist, logs)
 └── README.md                Master project documentation
 ```
@@ -300,28 +298,3 @@ npx newman run docs/postman/HotelReservation.postman_collection.json -e docs/pos
 npm run build --prefix frontend
 ```
 *Compiles optimized Vite client bundle into `frontend/dist/` in under 2 seconds.*
-
----
-
-## 🚢 Deployment Guide
-
-Detailed, step-by-step instructions for deploying to **MongoDB Atlas**, **Render** (backend), and **Netlify** (frontend) are provided in [`DEPLOY.md`](DEPLOY.md).
-
----
-
-## 🎥 Video Demonstration Guide
-
-For the required 2-3 minute demonstration video, follow this recommended walkthrough flow:
-1. **Public & Customer Flow**:
-   - Browse room types on the homepage and view high-resolution specifications.
-   - Run a live availability search using the dual-month calendar.
-   - Log in as Customer (`rahul@example.com` / `Guest@1234`), complete a 3-step booking with a deposit payment, and view the generated booking in **My Bookings**.
-   - Open and print the itemized Folio Tax Invoice.
-2. **Operations & Front Desk Flow**:
-   - Log in as Front Desk (`priya@harbourrow.com` / `Staff@1234`).
-   - Navigate to the **Tape Chart** to demonstrate the 14-day visual room occupancy matrix.
-   - Process an arrival check-in and demonstrate that check-out is blocked if an outstanding balance exists.
-3. **Administration & Analytics Flow**:
-   - Log in as Administrator (`admin@harbourrow.com` / `Admin@1234`).
-   - Review the **Summary Dashboard**, **Revenue Period Aggregation**, and **Chamber Occupancy** analytics.
-   - Demonstrate user management and room inventory controls.
