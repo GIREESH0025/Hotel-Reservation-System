@@ -26,6 +26,7 @@ export default function RoomTypesPage() {
   const [baseRate, setBaseRate] = useState(2500)
   const [capacity, setCapacity] = useState(2)
   const [amenitiesInput, setAmenitiesInput] = useState('')
+  const [image, setImage] = useState('')
   const [modalLoading, setModalLoading] = useState(false)
 
   // Delete confirm
@@ -46,6 +47,7 @@ export default function RoomTypesPage() {
     setBaseRate(2500)
     setCapacity(2)
     setAmenitiesInput('Wi-Fi, Air Conditioning, TV')
+    setImage('')
     setModalOpen(true)
   }
 
@@ -56,6 +58,7 @@ export default function RoomTypesPage() {
     setBaseRate(rt.baseRate)
     setCapacity(rt.capacity)
     setAmenitiesInput(Array.isArray(rt.amenities) ? rt.amenities.join(', ') : '')
+    setImage(rt.image || (rt.images && rt.images[0]) || '')
     setModalOpen(true)
   }
 
@@ -77,6 +80,8 @@ export default function RoomTypesPage() {
       baseRate: parseFloat(baseRate) || 0,
       capacity: parseInt(capacity, 10) || 1,
       amenities,
+      image: image.trim() || undefined,
+      images: image.trim() ? [image.trim()] : undefined,
     }
 
     try {
@@ -116,11 +121,37 @@ export default function RoomTypesPage() {
       key: 'name',
       header: 'Category Name',
       sortable: true,
-      render: (row) => (
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.125rem' }}>
-          {row.name}
-        </span>
-      ),
+      render: (row) => {
+        const photo = row.image || (row.images && row.images[0]) || ''
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {photo && (
+              <img
+                src={photo}
+                alt={row.name}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '6px',
+                  objectFit: 'cover',
+                  border: '1px solid #E5E7EB',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <div>
+              <span style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#111827', display: 'block' }}>
+                {row.name}
+              </span>
+              {row.bedType && (
+                <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                  {row.bedType}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      },
     },
     {
       key: 'baseRate',
@@ -296,6 +327,16 @@ export default function RoomTypesPage() {
             value={amenitiesInput}
             onChange={(e) => setAmenitiesInput(e.target.value)}
             placeholder="Wi-Fi, Air Conditioning, Jacuzzi, Balcony"
+            style={{ marginBottom: '16px' }}
+          />
+
+          <Field
+            label="Room Photo URL"
+            type="url"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="https://images.unsplash.com/photo-..."
+            hint="Single high-resolution photo URL for this room category"
             style={{ marginBottom: '24px' }}
           />
 

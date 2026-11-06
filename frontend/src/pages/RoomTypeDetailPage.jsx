@@ -5,7 +5,6 @@ import { reservationsApi } from '../api/reservations.api'
 import { useBooking } from '../context/BookingContext'
 import { useTitle } from '../hooks/useTitle'
 import { HOTEL_CONFIG } from '../config/hotel.config'
-import ImageGallery from '../components/ui/ImageGallery'
 import FareBreakup from '../components/ui/FareBreakup'
 import { MapPinIcon, MaximizeIcon, BedIcon, UsersIcon, CheckIcon } from '../components/ui/Icons'
 import { formatINR, formatShortDate, todayStr, daysFromTodayStr, computeNights } from '../utils/helpers'
@@ -259,10 +258,11 @@ export default function RoomTypeDetailPage() {
     )
   }
 
-  const photos =
-    roomType.images && roomType.images.length > 0
-      ? roomType.images
-      : [roomType.image || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80']
+  const singleImage =
+    roomType.image ||
+    (roomType.images && roomType.images[0]) ||
+    HOTEL_CONFIG.roomImages?.[roomType.name] ||
+    'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1400&q=80'
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-canvas)', paddingBottom: 80 }}>
@@ -329,9 +329,30 @@ export default function RoomTypeDetailPage() {
           </div>
         </div>
 
-        {/* ── 5-Photo Mosaic Gallery with Lightbox Modal ──────────────────────── */}
-        <div style={{ marginBottom: 32 }}>
-          <ImageGallery images={photos} alt={roomType.name} />
+        {/* ── Single Room Image Banner ──────────────────────── */}
+        <div
+          style={{
+            marginBottom: 32,
+            borderRadius: 16,
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #E5E7EB',
+            backgroundColor: '#F3F4F6',
+          }}
+        >
+          <img
+            src={singleImage}
+            alt={roomType.name}
+            style={{
+              width: '100%',
+              height: '460px',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+            onError={(e) => {
+              e.currentTarget.src = HOTEL_CONFIG.roomImages?.[roomType.name] || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1400&q=80'
+            }}
+          />
         </div>
 
         {/* ── Sticky Tab Bar with Scroll-Spy Navigation (Attachment #4) ──────── */}
