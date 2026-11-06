@@ -143,8 +143,6 @@ reservationSchema.index({ room: 1, checkIn: 1, checkOut: 1 });
 reservationSchema.index({ status: 1 });
 // Guest lookup
 reservationSchema.index({ guest: 1 });
-// Code lookup
-reservationSchema.index({ reservationCode: 1 }, { unique: true });
 // Date-range reporting
 reservationSchema.index({ checkIn: 1 });
 reservationSchema.index({ checkOut: 1 });

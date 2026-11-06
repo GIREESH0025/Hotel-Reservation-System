@@ -6,7 +6,7 @@
  * - 6 Room Types with realistic INR tariffs
  * - 40 Rooms across 4 floors (rooms 103 and 308 in maintenance)
  * - 30 Guests (6 linked to customer accounts, 24 walk-ins)
- * - 90+ Reservations across past, current, upcoming, cancelled, no-show
+ * - 30 Reservations across past, current, upcoming, cancelled, no-show
  * - Rich stay history for primary demo customer rahul@example.com
  *   (3 past fully paid, 1 upcoming deposit paid with balance due, 1 pending unpaid, 1 cancelled with refund)
  *
@@ -105,7 +105,7 @@ async function seedAllData() {
   const rahulGuest = guests.find((g) => g.email === rahul.email);
 
   // 6. Reservations Generation
-  console.log('[SEED] Generating ~90 non-overlapping reservations...');
+  console.log('[SEED] Generating 30 non-overlapping reservations...');
   const reservationsToCreate = [];
   const paymentsToCreate = [];
   let seq = 1;
@@ -303,50 +303,42 @@ async function seedAllData() {
     method: 'demo_online',
   });
 
-  // ── B. 55 Past Stays (checked_out, paid in full) across all active rooms ───
+  // ── B. 10 Past Stays (checked_out, paid in full) across rooms ───────────────
   let guestIdx = 1;
   const methods = ['card', 'upi', 'cash', 'demo_online'];
 
+  const pastRoomNumbers = ['102', '105', '106', '201', '203', '206', '301', '302', '305', '402'];
   const pastWindows = [
-    [-75, -72], [-71, -68], [-66, -62], [-61, -58], [-57, -54],
-    [-52, -49], [-48, -45], [-44, -40], [-38, -35], [-34, -30],
-    [-29, -26], [-25, -21], [-20, -17], [-15, -12], [-11, -8],
-    [-7, -4], [-5, -2],
+    [-35, -32], [-28, -25], [-24, -20], [-21, -18], [-18, -15],
+    [-15, -12], [-14, -11], [-12, -9], [-9, -6], [-7, -4]
   ];
 
-  for (let i = 0; i < 54; i++) {
-    const room = activeRooms[i % activeRooms.length];
-    const window = pastWindows[i % pastWindows.length];
-    const guest = guests[guestIdx % guests.length];
-    guestIdx++;
+  pastRoomNumbers.forEach((roomNum, i) => {
+    const room = activeRooms.find((r) => r.number === roomNum);
+    const window = pastWindows[i];
+    const guest = guests[guestIdx++ % guests.length];
 
     addReservation({
       guestId: guest._id,
       roomId: room._id,
       createdById: receptionists[i % 2]._id,
-      checkInN: window[0] - (Math.floor(i / activeRooms.length) * 3),
-      checkOutN: window[1] - (Math.floor(i / activeRooms.length) * 3),
+      checkInN: window[0],
+      checkOutN: window[1],
       status: 'checked_out',
-      notes: i % 4 === 0 ? 'Waterfront view appreciated.' : '',
+      notes: i % 2 === 0 ? 'Waterfront view appreciated.' : '',
       paidStatus: 'full',
       method: methods[i % methods.length],
     });
-  }
+  });
 
-  // ── C. Current In-House Stays (checked_in) ───────────────────────────────
-  // Distribute 1 room per room type so abundant rooms remain available today
-  const currentRooms = [
-    activeRooms[0], // Standard 101
-    activeRooms[2], // Deluxe King 104
-    activeRooms[4], // Twin Deluxe 105
-    activeRooms[6], // Accessible Queen 107
-    activeRooms[8], // Executive Suite 109
-  ];
-  currentRooms.forEach((room, idx) => {
+  // ── C. 7 Current In-House Stays (checked_in) ────────────────────────────────
+  const currentRoomNumbers = ['104', '107', '109', '207', '209', '303', '403'];
+  currentRoomNumbers.forEach((roomNum, idx) => {
+    const room = activeRooms.find((r) => r.number === roomNum);
     const checkInN = -(idx % 3 + 1); // -1, -2, -3
     const checkOutN = (idx % 3 + 2); // +2, +3, +4
-    const guest = guests[(guestIdx++) % guests.length];
-    const hasPaidFull = idx < 3;
+    const guest = guests[guestIdx++ % guests.length];
+    const hasPaidFull = idx < 4;
 
     addReservation({
       guestId: guest._id,
@@ -361,19 +353,14 @@ async function seedAllData() {
     });
   });
 
-  // ── D. Upcoming Stays (confirmed & pending) ───────────────────────────────
-  // Future dates (5+ days out) so today through 4 days out remain completely bookable
-  const upcomingRooms = [
-    activeRooms[1], // Standard 102
-    activeRooms[3], // Deluxe King 203
-    activeRooms[7], // Accessible Queen 108
-    activeRooms[9], // Executive Suite 110
-  ];
-  upcomingRooms.forEach((room, idx) => {
-    const checkInN = (idx * 2 + 5); // +5, +7, +9, +11
+  // ── D. 5 Upcoming Stays (confirmed & pending) ────────────────────────────────
+  const upcomingRoomNumbers = ['108', '110', '208', '306', '307'];
+  upcomingRoomNumbers.forEach((roomNum, idx) => {
+    const room = activeRooms.find((r) => r.number === roomNum);
+    const checkInN = (idx * 2 + 5); // +5, +7, +9, +11, +13
     const checkOutN = checkInN + (idx % 3 + 2); // 2 to 4 nights
-    const guest = guests[(guestIdx++) % guests.length];
-    const isConfirmed = idx < 2;
+    const guest = guests[guestIdx++ % guests.length];
+    const isConfirmed = idx < 3;
 
     addReservation({
       guestId: guest._id,
@@ -383,43 +370,39 @@ async function seedAllData() {
       checkOutN,
       status: isConfirmed ? 'confirmed' : 'pending',
       notes: isConfirmed ? 'Airport transfer requested.' : 'Awaiting guest arrival.',
-      paidStatus: isConfirmed ? (idx % 2 === 0 ? 'partial' : 'none') : 'none',
+      paidStatus: isConfirmed ? (idx % 2 === 0 ? 'partial' : 'full') : 'none',
       method: 'upi',
     });
   });
 
-  // ── E. 4 Additional Cancelled Stays ───────────────────────────────────────
-  const cancelRooms = activeRooms.slice(22, 26);
-  cancelRooms.forEach((room, idx) => {
-    const guest = guests[(guestIdx++) % guests.length];
-    addReservation({
-      guestId: guest._id,
-      roomId: room._id,
-      createdById: receptionists[0]._id,
-      checkInN: idx + 2,
-      checkOutN: idx + 5,
-      status: 'cancelled',
-      notes: 'Guest cancelled travel plans.',
-      paidStatus: idx % 2 === 0 ? 'refunded' : 'none',
-      method: 'card',
-    });
+  // ── E. 1 Cancelled Stay (refunded) ──────────────────────────────────────────
+  const cancelRoom = activeRooms.find((r) => r.number === '309');
+  const cancelGuest = guests[guestIdx++ % guests.length];
+  addReservation({
+    guestId: cancelGuest._id,
+    roomId: cancelRoom._id,
+    createdById: receptionists[0]._id,
+    checkInN: 2,
+    checkOutN: 5,
+    status: 'cancelled',
+    notes: 'Guest cancelled travel plans > 48h prior.',
+    paidStatus: 'refunded',
+    method: 'card',
   });
 
-  // ── F. 3 No-Show Stays ────────────────────────────────────────────────────
-  const noShowRooms = activeRooms.slice(26, 29);
-  noShowRooms.forEach((room, idx) => {
-    const guest = guests[(guestIdx++) % guests.length];
-    addReservation({
-      guestId: guest._id,
-      roomId: room._id,
-      createdById: receptionists[1]._id,
-      checkInN: -(idx + 4),
-      checkOutN: -(idx + 1),
-      status: 'no_show',
-      notes: 'Guest did not check in by midnight. Room released.',
-      paidStatus: 'none',
-      method: 'card',
-    });
+  // ── F. 1 No-Show Stay ───────────────────────────────────────────────────────
+  const noShowRoom = activeRooms.find((r) => r.number === '310');
+  const noShowGuest = guests[guestIdx++ % guests.length];
+  addReservation({
+    guestId: noShowGuest._id,
+    roomId: noShowRoom._id,
+    createdById: receptionists[1]._id,
+    checkInN: -4,
+    checkOutN: -1,
+    status: 'no_show',
+    notes: 'Guest did not check in by midnight. Room released.',
+    paidStatus: 'none',
+    method: 'card',
   });
 
   // 7. Insert all generated reservations and payments

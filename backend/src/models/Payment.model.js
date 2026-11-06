@@ -67,11 +67,9 @@ const paymentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Indexes
+// Indexes (reference & idempotencyKey unique sparse indexes defined on schema fields)
 paymentSchema.index({ reservation: 1 });
 paymentSchema.index({ paidAt: -1 });
-paymentSchema.index({ reference: 1 }, { unique: true, sparse: true });
-paymentSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ method: 1 });
 paymentSchema.index({ type: 1 });
