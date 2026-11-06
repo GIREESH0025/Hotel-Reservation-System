@@ -518,21 +518,21 @@ export default function SearchResultsPage() {
                         e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
                       }}
                     >
-                      {/* Column 1: Image & Urgency indicator */}
+                      {/* Column 1: Image & Real Inventory indicator */}
                       <div style={{ position: 'relative', height: '100%', minHeight: 200 }}>
                         <img
                           src={photo}
                           alt={rt.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
-                        {/* Real inventory countdown when <= 3 */}
+                        {/* Real database inventory indicator when <= 3 */}
                         {availableCount <= 3 && availableCount > 0 && (
                           <div
                             style={{
                               position: 'absolute',
                               top: 12,
                               left: 12,
-                              background: '#EF4444',
+                              background: '#DC2626',
                               color: '#FFFFFF',
                               padding: '3px 8px',
                               borderRadius: 4,
@@ -541,7 +541,7 @@ export default function SearchResultsPage() {
                               letterSpacing: '0.02em',
                             }}
                           >
-                            Only {availableCount} left!
+                            {availableCount === 1 ? '1 room remaining' : `${availableCount} rooms remaining`}
                           </div>
                         )}
                       </div>
