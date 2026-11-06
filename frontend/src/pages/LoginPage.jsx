@@ -57,17 +57,13 @@ export default function LoginPage() {
       setLoading(true)
       const user = await login(email, password)
 
-      // Guard: Hotel staff and administrators must sign in through the Admin Portal (/admin)
-      if (user.role === 'admin' || user.role === 'receptionist') {
-        await logout()
-        setServerError('Access restricted: Hotel staff and administrators must sign in through the Admin Portal at /admin.')
-        return
-      }
-
       success(`Welcome back, ${user.name}`)
 
-      // Redirect based on intended destination
-      if (from !== '/' && from !== '/login' && from !== '/admin') {
+      // Redirect based on role and intended destination
+      if (user.role === 'admin' || user.role === 'receptionist') {
+        const dest = from && from !== '/' && from !== '/login' ? from : '/staff/dashboard'
+        navigate(dest, { replace: true })
+      } else if (from !== '/' && from !== '/login' && from !== '/admin') {
         navigate(from, { replace: true })
       } else {
         // Customer default landing: home page with search bar

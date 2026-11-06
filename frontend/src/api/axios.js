@@ -12,7 +12,7 @@ const api = axios.create({
 // Request interceptor: attach JWT token from localStorage
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('hrh_token')
+    const token = localStorage.getItem('token') || localStorage.getItem('hrh_token')
     if (token) config.headers.Authorization = `Bearer ${token}`
     return config
   },
@@ -24,6 +24,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      localStorage.removeItem('token')
       localStorage.removeItem('hrh_token')
       // Fire a custom event so AuthContext can react
       window.dispatchEvent(new CustomEvent('auth:logout'))

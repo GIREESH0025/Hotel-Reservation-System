@@ -58,21 +58,16 @@ export default function AdminLoginPage() {
       setLoading(true)
       const user = await login(email, password)
 
-      // Only Admin and Receptionist (staff) are permitted in this portal
-      if (user.role === 'customer') {
-        await logout()
-        setServerError('Access denied: Guest accounts cannot sign in through the Admin Portal. Please use the Guest Sign In page.')
-        return
-      }
-
       success(`Welcome to Management Portal, ${user.name}`)
 
-      // Redirect to staff destination
-      const destination = from && from !== '/' && from !== '/login' && from !== '/admin'
-        ? from
-        : '/staff/dashboard'
-
-      navigate(destination, { replace: true })
+      if (user.role === 'customer') {
+        navigate('/', { replace: true })
+      } else {
+        const destination = from && from !== '/' && from !== '/login' && from !== '/admin'
+          ? from
+          : '/staff/dashboard'
+        navigate(destination, { replace: true })
+      }
     } catch (err) {
       setServerError(
         err.response?.data?.message ||

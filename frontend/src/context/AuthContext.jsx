@@ -5,13 +5,13 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [token, setToken] = useState(() => localStorage.getItem('hrh_token'))
+  const [token, setToken] = useState(() => localStorage.getItem('token') || localStorage.getItem('hrh_token'))
   const [loading, setLoading] = useState(true) // loading gate: true until session restored
 
   // Restore session from token on mount
   useEffect(() => {
     const restoreSession = async () => {
-      const storedToken = localStorage.getItem('hrh_token')
+      const storedToken = localStorage.getItem('token') || localStorage.getItem('hrh_token')
       if (!storedToken) {
         setLoading(false)
         return
@@ -20,8 +20,11 @@ export function AuthProvider({ children }) {
         const { data } = await authApi.me()
         setUser(data.data)
         setToken(storedToken)
+        localStorage.setItem('token', storedToken)
+        localStorage.setItem('hrh_token', storedToken)
       } catch {
         // Token invalid or expired — clear it
+        localStorage.removeItem('token')
         localStorage.removeItem('hrh_token')
         setUser(null)
         setToken(null)
@@ -45,6 +48,7 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     const { data } = await authApi.login({ email, password })
     const { token: newToken, user: newUser } = data.data
+    localStorage.setItem('token', newToken)
     localStorage.setItem('hrh_token', newToken)
     setToken(newToken)
     setUser(newUser)
@@ -54,6 +58,7 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (formData) => {
     const { data } = await authApi.register(formData)
     const { token: newToken, user: newUser } = data.data
+    localStorage.setItem('token', newToken)
     localStorage.setItem('hrh_token', newToken)
     setToken(newToken)
     setUser(newUser)
@@ -62,6 +67,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try { await authApi.logout() } catch { /* ignore */ }
+    localStorage.removeItem('token')
     localStorage.removeItem('hrh_token')
     setUser(null)
     setToken(null)
