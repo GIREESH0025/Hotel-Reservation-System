@@ -311,23 +311,54 @@ function mockModel(ModelClass, collName) {
     return items.length;
   };
 
-  ModelClass.findByIdAndUpdate = async function (id, updates, opts = {}) {
+  ModelClass.findByIdAndUpdate = function (id, updates, opts = {}) {
     const list = store[collName] || [];
     const idx = list.findIndex((x) => String(x._id) === String(id));
-    if (idx === -1) return null;
-
-    list[idx] = { ...list[idx], ...updates, updatedAt: new Date() };
-    const doc = { ...list[idx] };
-    attachDocMethods(collName, doc);
-    return doc;
+    let doc = null;
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...updates, updatedAt: new Date() };
+      doc = { ...list[idx] };
+      attachDocMethods(collName, doc);
+    }
+    const populates = [];
+    const queryObj = {
+      lean() { return queryObj; },
+      select() { return queryObj; },
+      session() { return queryObj; },
+      populate(p) {
+        populates.push(p);
+        if (doc) populateDoc(doc, populates);
+        return queryObj;
+      },
+      then(resolve, reject) {
+        return Promise.resolve(doc).then(resolve, reject);
+      },
+      catch(reject) {
+        return Promise.resolve(doc).catch(reject);
+      },
+    };
+    return queryObj;
   };
 
-  ModelClass.findByIdAndDelete = async function (id) {
+  ModelClass.findByIdAndDelete = function (id) {
     const list = store[collName] || [];
     const idx = list.findIndex((x) => String(x._id) === String(id));
-    if (idx === -1) return null;
-    const [removed] = list.splice(idx, 1);
-    return removed;
+    let removed = null;
+    if (idx !== -1) {
+      [removed] = list.splice(idx, 1);
+    }
+    const queryObj = {
+      lean() { return queryObj; },
+      select() { return queryObj; },
+      session() { return queryObj; },
+      then(resolve, reject) {
+        return Promise.resolve(removed).then(resolve, reject);
+      },
+      catch(reject) {
+        return Promise.resolve(removed).catch(reject);
+      },
+    };
+    return queryObj;
   };
 
   ModelClass.distinct = async function (field, filter = {}) {

@@ -21,7 +21,7 @@ export default function BookPage() {
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const { addToast, success, error } = useToast()
-  const { triggerRefresh } = useRefresh()
+  const { triggerRefresh, refreshTick } = useRefresh()
   const { draft, updateDraft, clearDraft } = useBooking()
 
   // 1. Wizard Step State (1: Details, 2: Traveller Info, 3: Pay)
@@ -80,7 +80,7 @@ export default function BookPage() {
       }
     }
     loadRoom()
-  }, [roomTypeId, navigate])
+  }, [roomTypeId, navigate, refreshTick])
 
   // Recalculate Quote on parameter change
   useEffect(() => {
@@ -157,7 +157,7 @@ export default function BookPage() {
       }
     }
     fetchQuote()
-  }, [roomTypeId, checkIn, checkOut, roomsCount, adults, initialChildren.length, ratePlan, roomType])
+  }, [roomTypeId, checkIn, checkOut, roomsCount, adults, initialChildren.length, ratePlan, roomType, refreshTick])
 
   // Handle Step 1 -> Step 2
   const handleProceedToTravellerInfo = () => {

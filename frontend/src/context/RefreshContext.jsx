@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 
 const RefreshContext = createContext(null)
 
@@ -7,6 +7,22 @@ export function RefreshProvider({ children }) {
 
   const triggerRefresh = useCallback(() => {
     setRefreshTick((t) => t + 1)
+    try {
+      localStorage.setItem('hrh_last_data_update', Date.now().toString())
+    } catch {
+      // Ignore storage errors in restricted private browsing
+    }
+  }, [])
+
+  // Synchronize across browser tabs whenever admin modifies room rates, inventory, or bookings
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'hrh_last_data_update') {
+        setRefreshTick((t) => t + 1)
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
   return (

@@ -7,9 +7,11 @@ import SearchBar from '../components/search/SearchBar'
 import RangeSlider from '../components/ui/RangeSlider'
 import { SearchIcon, MaximizeIcon, BedIcon, UsersIcon, CheckIcon } from '../components/ui/Icons'
 import { formatINR, todayStr, daysFromTodayStr, computeNights } from '../utils/helpers'
+import { useRefresh } from '../context/RefreshContext'
 
 export default function SearchResultsPage() {
   useTitle('Search Results — Harbour Row Hotel')
+  const { refreshTick } = useRefresh()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -54,7 +56,7 @@ export default function SearchResultsPage() {
     roomTypesApi.list({ limit: 12 }).then((res) => {
       setRoomTypesCatalog(res.data?.data || [])
     }).catch(() => {})
-  }, [])
+  }, [refreshTick])
 
   // Sync state with URL params
   useEffect(() => {
@@ -115,6 +117,7 @@ export default function SearchResultsPage() {
     selectedAmenities,
     freeCancelOnly,
     selectedSort,
+    refreshTick,
   ])
 
   // Update URL helper

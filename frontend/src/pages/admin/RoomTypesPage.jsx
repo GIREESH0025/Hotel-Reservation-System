@@ -10,11 +10,13 @@ import { Field } from '../../components/ui/Field'
 import { SkeletonTable } from '../../components/ui/Skeleton'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { useToast } from '../../context/ToastContext'
+import { useRefresh } from '../../context/RefreshContext'
 import { formatINR } from '../../utils/helpers'
 
 export default function RoomTypesPage() {
   const [page, setPage] = useState(1)
   const { success, error } = useToast()
+  const { triggerRefresh } = useRefresh()
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false)
@@ -88,6 +90,7 @@ export default function RoomTypesPage() {
       }
       setModalOpen(false)
       refetch()
+      triggerRefresh()
     } catch (err) {
       error(err.response?.data?.message || 'Failed to save room type.')
     } finally {
@@ -102,6 +105,7 @@ export default function RoomTypesPage() {
       success(`Chamber type "${deletingType.name}" deleted.`)
       setDeletingType(null)
       refetch()
+      triggerRefresh()
     } catch (err) {
       error(err.response?.data?.message || 'Failed to delete room type.')
     }
@@ -240,7 +244,7 @@ export default function RoomTypesPage() {
           />
 
           <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="description" style={{ display: 'block', fontWeight: 500, fontSize: '0.875rem', marginBottom: '4px' }}>
+            <label htmlFor="description" style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', color: '#374151', marginBottom: '6px' }}>
               Description
             </label>
             <textarea
@@ -251,12 +255,15 @@ export default function RoomTypesPage() {
               placeholder="Description of the chamber's layout, furnishings, and view…"
               style={{
                 width: '100%',
-                padding: '8px 12px',
-                border: 'var(--border)',
-                borderRadius: 'var(--radius)',
-                backgroundColor: 'var(--color-paper)',
+                padding: '10px 14px',
+                border: '1.5px solid #D1D5DB',
+                borderRadius: '8px',
+                backgroundColor: '#FFFFFF',
+                color: '#111827',
                 fontFamily: 'var(--font-ui)',
                 fontSize: '0.9375rem',
+                outline: 'none',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
               }}
             />
           </div>

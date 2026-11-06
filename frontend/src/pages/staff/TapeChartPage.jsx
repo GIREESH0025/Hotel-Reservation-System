@@ -9,9 +9,11 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { Modal } from '../../components/ui/Modal'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { formatINR, formatDate, statusColor } from '../../utils/helpers'
+import { useRefresh } from '../../context/RefreshContext'
 
 export default function TapeChartPage() {
   const navigate = useNavigate()
+  const { refreshTick } = useRefresh()
   const [selectedReservation, setSelectedReservation] = useState(null)
 
   // Generate next 14 days starting from today (00:00:00)
@@ -33,7 +35,7 @@ export default function TapeChartPage() {
   // Fetch all rooms
   const { data: roomsData, loading: roomsLoading, error: roomsError, refetch: refetchRooms } = useFetch(
     () => roomsApi.list({ limit: 100, sort: 'number' }),
-    []
+    [refreshTick]
   )
 
   // Fetch reservations covering the 14-day window
@@ -43,7 +45,7 @@ export default function TapeChartPage() {
       checkInTo: endDateStr,
       status: 'pending,confirmed,checked_in', // active statuses
     }),
-    [startDateStr, endDateStr]
+    [startDateStr, endDateStr, refreshTick]
   )
 
   const rooms = roomsData?.data || []

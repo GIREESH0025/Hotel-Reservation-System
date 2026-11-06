@@ -9,6 +9,7 @@ import ImageGallery from '../components/ui/ImageGallery'
 import FareBreakup from '../components/ui/FareBreakup'
 import { MapPinIcon, MaximizeIcon, BedIcon, UsersIcon, CheckIcon } from '../components/ui/Icons'
 import { formatINR, formatShortDate, todayStr, daysFromTodayStr, computeNights } from '../utils/helpers'
+import { useRefresh } from '../context/RefreshContext'
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -23,6 +24,7 @@ export default function RoomTypeDetailPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { updateDraft } = useBooking()
+  const { refreshTick } = useRefresh()
 
   // Stay parameters from URL query string
   const checkIn = searchParams.get('checkIn') || todayStr()
@@ -62,7 +64,7 @@ export default function RoomTypeDetailPage() {
       }
     }
     loadRoomType()
-  }, [id])
+  }, [id, refreshTick])
 
   // Fetch Live Server Quote whenever dates, rooms, adults, children, or ratePlan changes
   useEffect(() => {

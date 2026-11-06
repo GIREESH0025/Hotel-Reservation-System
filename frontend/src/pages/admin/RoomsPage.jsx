@@ -13,12 +13,14 @@ import { StatusBadge } from '../../components/ui/StatusBadge'
 import { SkeletonTable } from '../../components/ui/Skeleton'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { useToast } from '../../context/ToastContext'
+import { useRefresh } from '../../context/RefreshContext'
 import { formatINR } from '../../utils/helpers'
 
 export default function RoomsPage() {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
   const { success, error } = useToast()
+  const { triggerRefresh } = useRefresh()
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false)
@@ -96,6 +98,7 @@ export default function RoomsPage() {
       }
       setModalOpen(false)
       refetch()
+      triggerRefresh()
     } catch (err) {
       error(err.response?.data?.message || 'Failed to save chamber details.')
     } finally {
@@ -109,6 +112,7 @@ export default function RoomsPage() {
       await roomsApi.update(r._id, { status: nextStatus })
       success(`Chamber ${r.number} status changed to ${nextStatus}.`)
       refetch()
+      triggerRefresh()
     } catch (err) {
       error('Failed to change chamber status.')
     }
@@ -121,6 +125,7 @@ export default function RoomsPage() {
       success(`Chamber ${deletingRoom.number} removed.`)
       setDeletingRoom(null)
       refetch()
+      triggerRefresh()
     } catch (err) {
       error(err.response?.data?.message || 'Failed to delete chamber.')
     }

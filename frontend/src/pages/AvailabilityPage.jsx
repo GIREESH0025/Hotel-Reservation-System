@@ -7,10 +7,12 @@ import SearchBar from '../components/search/SearchBar'
 import { CheckIcon } from '../components/ui/Icons'
 import { formatINR, todayStr, daysFromTodayStr } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
+import { useRefresh } from '../context/RefreshContext'
 
 export default function AvailabilityPage() {
   useTitle('Harbour Row Hotel — Boutique Waterfront Lodgings')
   const { addToast } = useToast()
+  const { refreshTick } = useRefresh()
   const navigate = useNavigate()
 
   const [roomTypes, setRoomTypes] = useState([])
@@ -30,7 +32,10 @@ export default function AvailabilityPage() {
       }
     }
     loadCatalog()
-  }, [])
+
+    window.addEventListener('focus', loadCatalog)
+    return () => window.removeEventListener('focus', loadCatalog)
+  }, [refreshTick])
 
   const heroRoomType = roomTypes.find((r) => r.name === 'Deluxe King') || roomTypes[0]
   const heroImageSrc =
