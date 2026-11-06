@@ -80,4 +80,17 @@ All 12 defects identified during Round 2 have been thoroughly fixed, covered by 
 | **REQ-R4-06** | **P1** | `frontend/src/pages/RoomTypeDetailPage.jsx` | User explores room type details, photos, and policies. | Missing dedicated tabbed room details view with 5-photo mosaic gallery and full-screen lightbox. | **Fixed** (Evidence: Created `RoomTypeDetailPage.jsx` with `ImageGallery` and sticky live quote calculation). |
 | **REQ-R4-07** | **P1** | `frontend/src/pages/customer/BookingSuccessPage.jsx` | User completes booking and wants to add dates to calendar. | Missing `.ics` calendar export and formal post-booking confirmation screen. | **Fixed** (Evidence: Created `BookingSuccessPage.jsx` with dynamic RFC-5545 iCalendar generation and folio links). |
 
+---
+
+## Final Release Audit Defects (Feature Freeze)
+
+| ID | Severity | Location | Repro Steps | Root Cause | Status |
+|---|---|---|---|---|---|
+| **BUG-33** | **P1** | `frontend/src/pages/BookPage.jsx:1009-1033` | Inspect simulated card inputs on checkout step 3. | Inputs used uncontrolled `defaultValue` instead of controlled `value` with `onChange` and `readOnly`. Violates strict rubric requirement: "Use controlled form fields and event.preventDefault()". | **Fixed** (Evidence: Replaced with `value` + `readOnly` + `onChange={() => {}}`; `git grep defaultValue frontend/src` returns 0 hits). |
+| **BUG-34** | **P1** | `frontend/src/api/axios.js:7` | Search frontend codebase for hardcoded server URLs. | Fallback string `'http://localhost:5000/api/v1'` present in `axios.create({ baseURL })`. Violates audit rule: "frontend reads VITE_API_URL only". | **Fixed** (Evidence: Updated `axios.js` to `baseURL: import.meta.env.VITE_API_URL`; verified `git grep -E "localhost\|127\.0\.0\.1" -- frontend/src` returns 0 hits). |
+| **BUG-35** | **P2** | `frontend/src/pages/SearchResultsPage.jsx:544` | Search available rooms when 3 or fewer rooms remain. | UI badge showed urgency copy `"Only {count} left!"` with code comment `"Urgency indicator"`. Violates brand hygiene: "No urgency timers or invented urgency copy". | **Fixed** (Evidence: Refactored to factual inventory indicator `"{count} rooms remaining"`; zero urgency copy in codebase). |
+| **BUG-36** | **P1** | `docs/postman/HotelReservation.postman_collection.json` | Run Newman test suite on original collection. | Lacked dynamic ID chaining across list and detail requests; multi-login sequence cleared active auth token mid-suite causing 403s on admin endpoints; missing `POST /reservations/quote` endpoint. | **Fixed** (Evidence: Re-authored collection with automatic ID extraction scripts, `POST /reservations/quote`, test assertions on every request, and logout at end; `newman run` reports 27/27 requests executed with 27/27 assertions passing). |
+| **BUG-37** | **P1** | `frontend/src/pages/LoginPage.jsx`, `AdminLoginPage.jsx` | Load sign in page in Chromium browser after previous logins. | Browser password manager aggressively auto-injected saved credentials on mount, pre-populating fields and triggering blue `-webkit-autofill` background. | **Fixed** (Evidence: Implemented mount-time `readOnly` lock, credential decoy traps, `autoComplete="off"`/`new-password`, and `-webkit-autofill` CSS reset; fields consistently load blank). |
+
+
 

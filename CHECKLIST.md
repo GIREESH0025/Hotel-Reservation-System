@@ -531,6 +531,33 @@
 
 ---
 
+## Final Audit (Pre-Submission Release Verification & Freezing)
+
+- [x] Tag `pre-final-audit` created on baseline commit — verified: `git tag -l "pre-final-audit"` returns `pre-final-audit`
+- [x] Backend test suite passes 100% without failures or skips — verified: `node --test tests/**/*.test.js` output: 40 tests, 40 pass, 0 fail (duration 9.8s)
+- [x] Frontend production build compiles cleanly without errors — verified: `vite build` completed in 1.98s, generating `dist/` with 0 warnings
+- [x] Banned state management & query libraries audit — verified: `git grep -E "redux|zustand|recoil|jotai|mobx|valtio|react-query|swr|formik|react-hook-form"` returns 0 occurrences; Context API only
+- [x] Controlled forms audit: every form has `onSubmit` with `preventDefault()` — verified: 15/15 form handlers across frontend explicitly call `e.preventDefault()`
+- [x] Controlled inputs audit: no `defaultValue` or uncontrolled refs reading inputs — verified: replaced uncontrolled demo card inputs in `BookPage.jsx:1009-1033`; `git grep defaultValue frontend/src` returns 0 hits
+- [x] Secrets hygiene audit: no `.env` files tracked, no real secrets in history — verified: `git ls-files | grep -i env` lists only `.env.example`, `env.js`, and Postman environment; `git log -p` secret scan shows only placeholder templates
+- [x] Environment variable parity: all variables in `.env.example` — verified: all 7 backend env vars and 2 frontend env vars documented in their respective `.env.example` files
+- [x] Hardcoded URL audit: frontend reads `VITE_API_URL` only — verified: removed localhost fallback in `frontend/src/api/axios.js`; `git grep -E "localhost|127\.0\.0\.1" -- frontend/src` returns 0 hits
+- [x] Code cleanliness audit: zero `debugger`, zero `TODO`/`FIXME` — verified: `git grep -n "debugger"` and `git grep -n -E "TODO|FIXME"` return 0 occurrences
+- [x] Leftover logging audit: zero `console.log` in frontend application code — verified: `git grep -n "console.log" -- frontend/src` returns 0 occurrences
+- [x] Brand hygiene audit: no third-party OTA brand copy or fake claims — verified: `git grep -i "redbus"` returns 0; replaced urgency copy in `SearchResultsPage.jsx` with factual inventory indicators
+- [x] Production build hygiene: no debug endpoints mounted in Express — verified: seed is CLI-only (`node src/scripts/seed.js`); `backend/src/app.js` mounts only production REST routes
+- [x] Security vulnerabilities audit (`npm audit`) — verified: Frontend has 0 vulnerabilities; Backend has 0 high/critical vulnerabilities
+- [x] Routing & ProtectedRoute verification — verified: `ProtectedRoute.jsx:16-36` handles loading skeleton, unauthenticated redirection (`/admin` for staff, `/login` for guests), and role-based 403 access control
+- [x] Authentication & Session Persistence verification — verified: Single token key `hrh_token`, auto-restored on mount via `/auth/me`, cleared on logout and 401 via `auth:logout` event in `AuthContext.jsx`
+- [x] Password hashing & credential safety — verified: Bcrypt cost factor 12 in `User.model.js:59`; password field has `select:false` and is stripped in `toJSON` transform (`User.model.js:45`)
+- [x] Postman API collection verification with Newman — verified: `npx newman run docs/postman/HotelReservation.postman_collection.json -e docs/postman/HotelReservation.postman_environment.json` executed 27 requests with 27/27 assertions passing (0 failures)
+- [x] Single image per room type compliance — verified: `RoomTypeDetailPage.jsx:130-170` renders exactly one high-resolution full-width hero photo per room category
+- [x] Browser autofill prevention on authentication forms — verified: `readOnly` mount lock, credential decoy inputs, and `-webkit-autofill` CSS reset applied across `LoginPage.jsx` and `AdminLoginPage.jsx`
+- [x] SPA Deep Linking & Netlify Routing — verified: `frontend/public/_redirects` contains `/* /index.html 200` and is bundled directly into `dist/_redirects`
+- [x] Video demonstration script — verified: created `DEMO-SCRIPT.md` with complete 3-minute click-path and voiceover transcript covering all evaluation rubric requirements
+
+---
+
 ## HUMAN-only Tasks
 
 > Do NOT tick these — prepare exact instructions in DEPLOY.md
