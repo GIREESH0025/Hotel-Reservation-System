@@ -29,8 +29,22 @@ app.use(cors({
   origin: (origin, cb) => {
     // Allow requests with no origin (Postman, curl, same-origin)
     if (!origin) return cb(null, true);
-    const allowed = env.clientOrigin.split(',').map((s) => s.trim());
-    if (allowed.includes(origin)) return cb(null, true);
+    const cleanOrigin = origin.replace(/\/$/, '');
+    const allowed = (env.clientOrigin || '')
+      .split(',')
+      .map((s) => s.trim().replace(/\/$/, ''))
+      .filter(Boolean);
+
+    // Allow configured origins, specific production domain, or Netlify/Vercel deployments
+    if (
+      allowed.includes(cleanOrigin) ||
+      allowed.includes('*') ||
+      cleanOrigin === 'https://harbourhotel.netlify.app' ||
+      cleanOrigin.endsWith('.netlify.app') ||
+      cleanOrigin.endsWith('.vercel.app')
+    ) {
+      return cb(null, true);
+    }
     cb(new Error(`CORS: origin "${origin}" not allowed`));
   },
   credentials: true,
