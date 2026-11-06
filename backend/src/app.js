@@ -59,7 +59,22 @@ const PREFIX = '/api/v1';
 const healthHandler = (_req, res) => {
   res.json({ success: true, status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 };
+
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'Harbour Row Hotel API is operational',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      apiHealth: '/api/health',
+      v1Health: `${PREFIX}/health`,
+    },
+  });
+});
+
 app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 app.get(`${PREFIX}/health`, healthHandler);
 
 app.use(`${PREFIX}/auth`, authRoutes);
