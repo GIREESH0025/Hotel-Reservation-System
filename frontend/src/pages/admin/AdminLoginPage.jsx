@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -13,6 +13,19 @@ export default function AdminLoginPage() {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
+  const [isUnlocked, setIsUnlocked] = useState(false)
+
+  // Block aggressive browser/Chrome autofill on initial mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsUnlocked(true)
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleUnlock = () => {
+    if (!isUnlocked) setIsUnlocked(true)
+  }
 
   const { login, logout } = useAuth()
   const { success } = useToast()
@@ -128,18 +141,40 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate autoComplete="off">
+          {/* Decoy fields to trap browser credential autofill */}
+          <input
+            type="text"
+            name="fake_staff_user"
+            tabIndex={-1}
+            autoComplete="off"
+            style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none', zIndex: -1 }}
+            aria-hidden="true"
+          />
+          <input
+            type="password"
+            name="fake_staff_pass"
+            tabIndex={-1}
+            autoComplete="new-password"
+            style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none', zIndex: -1 }}
+            aria-hidden="true"
+          />
+
           <Field
             label="Staff email address"
             type="email"
+            name="staff_portal_email"
             value={email}
+            readOnly={!isUnlocked}
+            onFocus={handleUnlock}
+            onMouseDown={handleUnlock}
             onChange={(e) => {
               setEmail(e.target.value)
               if (errors.email) setErrors((prev) => ({ ...prev, email: '' }))
             }}
             error={errors.email}
             required
-            autoComplete="email"
+            autoComplete="off"
             placeholder="e.g. admin@harbourrow.com"
             style={{ marginBottom: '16px' }}
           />
@@ -147,14 +182,18 @@ export default function AdminLoginPage() {
           <Field
             label="Password"
             type="password"
+            name="staff_portal_password"
             value={password}
+            readOnly={!isUnlocked}
+            onFocus={handleUnlock}
+            onMouseDown={handleUnlock}
             onChange={(e) => {
               setPassword(e.target.value)
               if (errors.password) setErrors((prev) => ({ ...prev, password: '' }))
             }}
             error={errors.password}
             required
-            autoComplete="current-password"
+            autoComplete="new-password"
             style={{ marginBottom: '24px' }}
           />
 
