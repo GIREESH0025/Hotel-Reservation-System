@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { RefreshProvider } from './context/RefreshContext'
 import { BookingProvider } from './context/BookingContext'
@@ -38,6 +38,7 @@ const GuestDetailPage = lazy(() => import('./pages/staff/GuestDetailPage'))
 const PaymentsPage = lazy(() => import('./pages/staff/PaymentsPage'))
 
 // Admin
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const RoomsPage = lazy(() => import('./pages/admin/RoomsPage'))
 const RoomTypesPage = lazy(() => import('./pages/admin/RoomTypesPage'))
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'))
@@ -51,6 +52,24 @@ function PageFallback() {
       <Skeleton height="20px" style={{ marginBottom: '12px', width: '70%' }} />
     </div>
   )
+}
+
+function AdminPortalEntry() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <PageFallback />
+  }
+
+  if (!user) {
+    return <PublicLayout><AdminLoginPage /></PublicLayout>
+  }
+
+  if (user.role === 'customer') {
+    return <Navigate to="/403" replace />
+  }
+
+  return <Navigate to="/staff/dashboard" replace />
 }
 
 export default function App() {
@@ -201,15 +220,9 @@ export default function App() {
               }
             />
 
-            {/* Admin-only routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <Navigate to="/staff/dashboard" replace />
-                </ProtectedRoute>
-              }
-            />
+            {/* Admin & Staff Portal routes */}
+            <Route path="/admin" element={<AdminPortalEntry />} />
+            <Route path="/admin/login" element={<AdminPortalEntry />} />
             <Route
               path="/admin/rooms"
               element={

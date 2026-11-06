@@ -180,9 +180,14 @@ export function TopNavbar() {
   const handleConfirmLogout = async () => {
     try {
       setIsLoggingOut(true)
+      const role = user?.role
       await logout()
       setShowLogoutConfirm(false)
-      navigate('/login')
+      if (role === 'admin' || role === 'receptionist') {
+        navigate('/admin')
+      } else {
+        navigate('/login')
+      }
     } finally {
       setIsLoggingOut(false)
     }
@@ -550,9 +555,14 @@ export function AppLayout({ children }) {
   const handleConfirmLogout = async () => {
     try {
       setIsLoggingOut(true)
+      const role = user?.role
       await logout()
       setShowLogoutConfirm(false)
-      navigate('/login')
+      if (role === 'admin' || role === 'receptionist') {
+        navigate('/admin')
+      } else {
+        navigate('/login')
+      }
     } finally {
       setIsLoggingOut(false)
     }

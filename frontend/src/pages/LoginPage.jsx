@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
 
-  const { login } = useAuth()
+  const { login, logout } = useAuth()
   const { success } = useToast()
   const navigate = useNavigate()
   const location = useLocation()
@@ -43,13 +43,19 @@ export default function LoginPage() {
     try {
       setLoading(true)
       const user = await login(email, password)
+
+      // Guard: Hotel staff and administrators must sign in through the Admin Portal (/admin)
+      if (user.role === 'admin' || user.role === 'receptionist') {
+        await logout()
+        setServerError('Access restricted: Hotel staff and administrators must sign in through the Admin Portal at /admin.')
+        return
+      }
+
       success(`Welcome back, ${user.name}`)
 
-      // Redirect based on role or intended destination
-      if (from !== '/' && from !== '/login') {
+      // Redirect based on intended destination
+      if (from !== '/' && from !== '/login' && from !== '/admin') {
         navigate(from, { replace: true })
-      } else if (user.role === 'admin' || user.role === 'receptionist') {
-        navigate('/staff/dashboard', { replace: true })
       } else {
         // Customer default landing: home page with search bar
         navigate('/', { replace: true })
@@ -66,12 +72,20 @@ export default function LoginPage() {
 
   return (
     <div style={{ maxWidth: '440px', margin: '48px auto', padding: '0 16px' }}>
-      <div style={{ border: 'var(--border)', padding: '32px', backgroundColor: 'var(--color-paper)', borderRadius: 'var(--radius)' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '8px' }}>
-          Sign In
+      <div
+        style={{
+          border: '1px solid #E5E7EB',
+          padding: '36px 32px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '8px', color: '#111827', fontWeight: 800 }}>
+          Guest Sign In
         </h1>
-        <p style={{ color: 'var(--color-stone)', fontSize: '0.875rem', marginBottom: '24px' }}>
-          Enter your credentials to access your hotel account.
+        <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '24px' }}>
+          Enter your credentials to access your guest reservations and profile.
         </p>
 
         {serverError && (
@@ -129,19 +143,23 @@ export default function LoginPage() {
             Sign In
           </Button>
 
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-stone)', textAlign: 'center' }}>
+          <p style={{ fontSize: '0.875rem', color: '#6B7280', textAlign: 'center' }}>
             Don't have an account?{' '}
-            <Link to="/register" style={{ color: 'var(--color-laterite)', fontWeight: 500 }}>
+            <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
               Register here
             </Link>
           </p>
         </form>
 
-        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: 'var(--border)', fontSize: '0.75rem', color: 'var(--color-stone)' }}>
-          <p style={{ fontWeight: 600, marginBottom: '4px' }}>Demo Credentials:</p>
-          <p>Admin: admin@harbourrow.com / Admin@1234</p>
-          <p>Staff: priya@harbourrow.com / Staff@1234</p>
-          <p>Customer: rahul@example.com / Guest@1234</p>
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #E5E7EB', fontSize: '0.8125rem', color: '#6B7280' }}>
+          <p style={{ fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Demo Guest Account:</p>
+          <p>Email: <code style={{ backgroundColor: '#F3F4F6', padding: '2px 6px', borderRadius: '4px', color: '#111827' }}>rahul@example.com</code></p>
+          <p style={{ marginTop: '3px' }}>Password: <code style={{ backgroundColor: '#F3F4F6', padding: '2px 6px', borderRadius: '4px', color: '#111827' }}>Guest@1234</code></p>
+          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #E5E7EB' }}>
+            <Link to="/admin" style={{ fontSize: '0.75rem', color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>
+              Hotel Staff or Administrator? Go to Staff &amp; Admin Portal &rarr;
+            </Link>
+          </div>
         </div>
       </div>
     </div>

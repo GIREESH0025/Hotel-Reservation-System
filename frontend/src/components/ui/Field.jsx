@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 /**
  * Field — A labeled, controlled text/number/date/email/password input.
  * Always has a visible label. Shows error message below input.
@@ -24,32 +26,39 @@ export function Field({
   const id = props.id || `field-${++idCounter}`
   const errorId = `${id}-error`
   const hintId = `${id}-hint`
+  const [focused, setFocused] = useState(false)
 
   const inputStyle = {
     display: 'block',
     width: '100%',
-    padding: '8px 12px',
+    padding: '10px 14px',
     fontFamily: 'var(--font-ui)',
     fontSize: '0.9375rem',
-    color: 'var(--color-ink)',
-    backgroundColor: 'var(--color-paper)',
-    border: 'var(--border)',
-    borderRadius: 'var(--radius)',
+    color: '#111827',
+    backgroundColor: disabled ? '#F9FAFB' : '#FFFFFF',
+    border: error
+      ? '1.5px solid var(--color-error)'
+      : focused
+      ? '1.5px solid var(--color-primary)'
+      : '1.5px solid #D1D5DB',
+    borderRadius: '8px',
     outline: 'none',
-    borderColor: error ? 'var(--color-error)' : 'var(--color-rule)',
-    transition: 'border-color var(--transition)',
+    boxShadow: focused
+      ? '0 0 0 3px rgba(214, 57, 65, 0.15)'
+      : '0 1px 2px rgba(0, 0, 0, 0.05)',
+    transition: 'border-color 150ms ease, box-shadow 150ms ease',
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', ...extraStyle }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', ...extraStyle }}>
       <label
         htmlFor={id}
-        style={{ fontWeight: 500, fontSize: '0.875rem', color: 'var(--color-ink)' }}
+        style={{ fontWeight: 600, fontSize: '0.875rem', color: '#374151' }}
       >
         {label}{required && <span style={{ color: 'var(--color-error)', marginLeft: '2px' }} aria-hidden="true">*</span>}
       </label>
       {hint && (
-        <span id={hintId} style={{ fontSize: '0.8125rem', color: 'var(--color-stone)' }}>
+        <span id={hintId} style={{ fontSize: '0.8125rem', color: '#6B7280' }}>
           {hint}
         </span>
       )}
@@ -58,6 +67,14 @@ export function Field({
         type={type}
         value={value}
         onChange={onChange}
+        onFocus={(e) => {
+          setFocused(true)
+          props.onFocus?.(e)
+        }}
+        onBlur={(e) => {
+          setFocused(false)
+          props.onBlur?.(e)
+        }}
         disabled={disabled}
         placeholder={placeholder}
         required={required}
@@ -73,7 +90,7 @@ export function Field({
         <span
           id={errorId}
           role="alert"
-          style={{ fontSize: '0.8125rem', color: 'var(--color-error)' }}
+          style={{ fontSize: '0.8125rem', color: 'var(--color-error)', fontWeight: 500, marginTop: '2px' }}
         >
           {error}
         </span>

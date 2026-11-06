@@ -61,12 +61,20 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ maxWidth: '440px', margin: '48px auto', padding: '0 16px' }}>
-      <div style={{ border: 'var(--border)', padding: '32px', backgroundColor: 'var(--color-paper)', borderRadius: 'var(--radius)' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '8px' }}>
+    <div style={{ maxWidth: '460px', margin: '48px auto', padding: '0 16px' }}>
+      <div
+        style={{
+          border: '1px solid #E5E7EB',
+          padding: '36px 32px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '8px', color: '#111827', fontWeight: 800 }}>
           Create Account
         </h1>
-        <p style={{ color: 'var(--color-stone)', fontSize: '0.875rem', marginBottom: '24px' }}>
+        <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '24px' }}>
           Register as a guest to book rooms and track reservations.
         </p>
 

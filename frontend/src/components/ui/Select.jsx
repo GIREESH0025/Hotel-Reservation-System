@@ -21,24 +21,25 @@ export function Select({
   const selectStyle = {
     display: 'block',
     width: '100%',
-    padding: '8px 12px',
+    padding: '10px 14px',
     fontFamily: 'var(--font-ui)',
     fontSize: '0.9375rem',
-    color: value ? 'var(--color-ink)' : 'var(--color-stone)',
-    backgroundColor: 'var(--color-paper)',
-    border: '1px solid',
-    borderColor: error ? 'var(--color-error)' : 'var(--color-rule)',
-    borderRadius: 'var(--radius)',
+    color: value ? '#111827' : '#6B7280',
+    backgroundColor: disabled ? '#F9FAFB' : '#FFFFFF',
+    border: error ? '1.5px solid var(--color-error)' : '1.5px solid #D1D5DB',
+    borderRadius: '8px',
     outline: 'none',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
     cursor: disabled ? 'not-allowed' : 'pointer',
     appearance: 'auto',
+    transition: 'border-color 150ms ease, box-shadow 150ms ease',
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', ...extraStyle }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', ...extraStyle }}>
       <label
         htmlFor={id}
-        style={{ fontWeight: 500, fontSize: '0.875rem', color: 'var(--color-ink)' }}
+        style={{ fontWeight: 600, fontSize: '0.875rem', color: '#374151' }}
       >
         {label}{required && <span style={{ color: 'var(--color-error)', marginLeft: '2px' }} aria-hidden="true">*</span>}
       </label>

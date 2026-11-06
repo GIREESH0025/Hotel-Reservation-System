@@ -23,13 +23,15 @@
   --color-card-border:    #E5E7EB;
   --color-border:         #E5E7EB;
   --color-border-dark:    #D1D5DB;
+  --border:               1px solid #E5E7EB;
+  --border-strong:        1.5px solid #D1D5DB;
 
   /* ── Typography Colors ───────────────────────────────────────────────── */
   --color-ink:            #111827;
   --color-text-main:      #111827;
   --color-text-muted:     #6B7280;
   --color-text-subtle:    #9CA3AF;
-  --color-paper:          #F3F3F8; /* compatibility fallback */
+  --color-paper:          #FFFFFF; /* White paper/surface for cards */
   --color-rule:           #E5E7EB; /* compatibility fallback */
   --color-stone:          #6B7280; /* compatibility fallback */
   --color-laterite:       #D63941; /* compatibility fallback */

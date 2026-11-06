@@ -25,7 +25,9 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    const isStaffRoute = location.pathname.startsWith('/staff') || location.pathname.startsWith('/admin')
+    const redirectPath = isStaffRoute ? '/admin' : '/login'
+    return <Navigate to={redirectPath} state={{ from: location }} replace />
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
