@@ -22,6 +22,8 @@ pnpm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+*.ini
 
 # Editor directories
 .idea/
