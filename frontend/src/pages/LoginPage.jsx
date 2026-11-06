@@ -51,7 +51,8 @@ export default function LoginPage() {
       } else if (user.role === 'admin' || user.role === 'receptionist') {
         navigate('/staff/dashboard', { replace: true })
       } else {
-        navigate('/my/bookings', { replace: true })
+        // Customer default landing: home page with search bar
+        navigate('/', { replace: true })
       }
     } catch (err) {
       setServerError(

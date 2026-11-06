@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { BRAND_NAME } from '../../api/axios'
 import { useState } from 'react'
+import { Modal } from './Modal'
 import {
   BedDouble,
   LogOut,
@@ -114,16 +115,77 @@ function NavIconButton({ to, icon: Icon, title, active, onClick }) {
   )
 }
 
+/** Modal asking confirmation before logging out */
+function LogoutConfirmModal({ isOpen, onClose, onConfirm, isLoggingOut }) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={() => !isLoggingOut && onClose()}
+      title="Confirm Sign Out"
+      maxWidth="420px"
+    >
+      <div style={{ padding: '8px 0 16px', color: '#4B5563', fontSize: '0.9375rem', lineHeight: 1.5 }}>
+        Are you sure you want to log out of your account? You will need to sign in again to view your bookings or access your profile.
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isLoggingOut}
+          style={{
+            padding: '9px 18px',
+            borderRadius: 9999,
+            border: '1px solid #D1D5DB',
+            background: '#FFFFFF',
+            color: '#374151',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={isLoggingOut}
+          style={{
+            padding: '9px 20px',
+            borderRadius: 9999,
+            border: 'none',
+            background: 'var(--color-primary)',
+            color: '#FFFFFF',
+            fontWeight: 700,
+            fontSize: '0.875rem',
+            cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+            boxShadow: '0 2px 8px rgba(214, 57, 65, 0.3)',
+          }}
+        >
+          {isLoggingOut ? 'Logging out...' : 'Yes, Log Out'}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
 /** Universal Top Navbar matching home section */
 export function TopNavbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
+  const handleConfirmLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      await logout()
+      setShowLogoutConfirm(false)
+      navigate('/login')
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   const isCurrent = (path) => {
@@ -241,7 +303,7 @@ export function TopNavbar() {
                 </Link>
 
                 <NavIconButton
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   icon={LogOut}
                   title="Sign Out"
                 />
@@ -319,7 +381,7 @@ export function TopNavbar() {
                 </Link>
 
                 <NavIconButton
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   icon={LogOut}
                   title="Sign Out"
                 />
@@ -435,7 +497,7 @@ export function TopNavbar() {
                 </>
               )}
               <button
-                onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                onClick={() => { setMobileMenuOpen(false); setShowLogoutConfirm(true); }}
                 style={{
                   textAlign: 'left',
                   background: 'none',
@@ -462,6 +524,14 @@ export function TopNavbar() {
           )}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmLogout}
+        isLoggingOut={isLoggingOut}
+      />
     </header>
   )
 }
@@ -472,12 +542,20 @@ export function AppLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const links = ROLE_LINKS[user?.role] || ROLE_LINKS.admin
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
+  const handleConfirmLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      await logout()
+      setShowLogoutConfirm(false)
+      navigate('/login')
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   const formatted = formatName(user?.name)
@@ -555,7 +633,7 @@ export function AppLayout({ children }) {
               Account Profile
             </Link>
             <button
-              onClick={handleLogout}
+              onClick={() => setShowLogoutConfirm(true)}
               style={{
                 display: 'block',
                 width: '100%',
@@ -580,6 +658,14 @@ export function AppLayout({ children }) {
           {children}
         </main>
       </div>
+
+      {/* Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmLogout}
+        isLoggingOut={isLoggingOut}
+      />
     </div>
   )
 }
@@ -609,9 +695,6 @@ export function PublicLayout({ children }) {
           </div>
           <div>
             Check-in 14:00 &bull; Check-out 11:00 &bull; Reception: +91 22 2202 0000
-          </div>
-          <div style={{ fontStyle: 'italic', color: '#9CA3AF' }}>
-            Demo project, not a real hotel.
           </div>
         </div>
       </footer>

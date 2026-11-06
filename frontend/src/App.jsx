@@ -203,6 +203,14 @@ export default function App() {
 
             {/* Admin-only routes */}
             <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Navigate to="/staff/dashboard" replace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/rooms"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
